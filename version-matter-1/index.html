@@ -20,7 +20,7 @@
     body{
       font-family:"Lora",serif; color:var(--ink);
       display:flex; flex-direction:column; gap:.5rem;
-      background-image:url('../background.png'); background-size:260px 260px; background-repeat:repeat;
+      background-image:url('background.png'); background-size:260px 260px; background-repeat:repeat;
     }
     header{
       display:flex; align-items:center; justify-content:space-between;
@@ -83,9 +83,9 @@
   <header>
     <div class="title">Infância do GPT — <span style="color:var(--orange)">Nível 0</span> (Tutorial)</div>
     <div class="controls">
-      <button id="btnPlay" class="btn play"><img src="../play_icon.png" alt="">Play</button>
+      <button id="btnPlay" class="btn play"><img src="play_icon.png" alt="">Play</button>
       <button id="btnReset" class="btn reset">Reset</button>
-      <button id="btnMenu" class="btn"><img src="../diary_icon.png" alt="">Menu</button>
+      <button id="btnMenu" class="btn"><img src="diary_icon.png" alt="">Menu</button>
     </div>
   </header>
 
@@ -160,7 +160,7 @@ const toolRamp = document.getElementById('toolRamp');
 const toolRampCountEl = document.getElementById('toolRampCount');
 
 // Assets
-const imgBucket = new Image(); imgBucket.src = '../bucket.png';
+const imgBucket = new Image(); imgBucket.src = 'bucket.png';
 
 // World/engine
 let engine, world;

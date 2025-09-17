@@ -1,49 +1,94 @@
 # Infância do GPT 🎮
 
-> **Nível 0 (Tutorial)** - Uma experiência de física interativa inspirada na estética de colagem e giz
+> **Interface web interativa** inspirada em The Incredible Machine com estética de colagem e giz
 
 [![HTML5](https://img.shields.io/badge/HTML5-E34F26?style=for-the-badge&logo=html5&logoColor=white)](https://developer.mozilla.org/en-US/docs/Web/HTML)
+[![CSS3](https://img.shields.io/badge/CSS3-1572B6?style=for-the-badge&logo=css3&logoColor=white)](https://developer.mozilla.org/en-US/docs/Web/CSS)
 [![JavaScript](https://img.shields.io/badge/JavaScript-F7DF1E?style=for-the-badge&logo=javascript&logoColor=black)](https://developer.mozilla.org/en-US/docs/Web/JavaScript)
-[![Matter.js](https://img.shields.io/badge/Matter.js-000000?style=for-the-badge&logo=matter.js&logoColor=white)](https://brm.io/matter-js/)
 
 ## 🎯 Sobre o Projeto
 
-**Infância do GPT** é um jogo de física 2D que combina mecânicas simples com uma estética visual única inspirada em colagens e desenhos a giz. O objetivo é guiar uma bola laranja até um balde usando uma rampa, explorando os princípios básicos da física através de uma interface intuitiva e visualmente atrativa.
+**Infância do GPT** é uma interface web interativa que combina a estética artesanal de colagem e giz com a mecânica de construção de máquinas do clássico jogo *The Incredible Machine*. O projeto permite aos usuários montar e experimentar com máquinas interativas através de uma interface intuitiva e visualmente atrativa.
 
-### ✨ Características
+### ✨ Características Visuais
 
-- **Física Realista**: Motor de física Matter.js para simulações precisas
-- **Estética Única**: Visual inspirado em colagem com paleta de cores pastel
-- **Interface Intuitiva**: Controles simples de arrastar e soltar
-- **Sistema de Rotação**: Controles Q/E para ajustar ângulos com snap opcional
-- **Feedback Visual**: Dicas contextuais e animações suaves
-- **Responsivo**: Design adaptável para diferentes tamanhos de tela
+- **Estética Única**: Design inspirado em colagem com paleta de cores pastel
+- **Tipografia Elegante**: Fonte Lora para uma aparência sofisticada
+- **Interface Intuitiva**: Layout limpo e organizado em formato paisagem
+- **Responsividade**: Adaptação automática para diferentes tamanhos de tela
+- **Animações Suaves**: Transições e efeitos visuais cuidadosamente elaborados
 
-## 🎮 Como Jogar
+## 🎮 Estado Atual
 
-### Objetivo
-Faça a **bola laranja** cair dentro do **balde** usando a **rampa** disponível.
+O projeto já possui uma interface funcional com:
 
-### Controles
-- **Arrastar**: Pegue a rampa da caixa de ferramentas e posicione-a no campo
-- **Rotacionar**: Use `Q` e `E` para ajustar o ângulo da rampa
-- **Snap**: Segure `Shift` + `Q`/`E` para rotação em incrementos de 15°
-- **Play**: Inicia a simulação física
-- **Reset**: Recarrega o nível
+### **Cabeçalho**
+- Título principal "The Machine's Gepeto"
+- Design minimalista com linha de destaque laranja
 
-### Dicas
-1. Posicione a rampa estrategicamente para guiar a bola
-2. Use a rotação para ajustar o ângulo de lançamento
-3. Experimente diferentes posições e ângulos
-4. Observe como a física afeta o movimento da bola
+### **Painel de Máquinas**
+- Grid 2×3 com seis slots clicáveis para máquinas
+- Botões numerados de 1 a 6
+- Efeitos visuais de hover e foco
+- Preparado para futuras implementações de máquinas
+
+### **Barra Lateral**
+- Três ícones interativos com modais informativos:
+  - **Tutorial** 📖 - Guia de uso da interface
+  - **Autores** 💡 - Informações sobre a equipe
+  - **Livro** ✏️ - Documentação e referências
+
+### **Sistema de Modais**
+- Janelas grandes e informativas
+- Fechamento por tecla Escape ou clique no fundo
+- Acessibilidade completa com navegação por teclado
+
+### **Responsividade**
+- **Formato Paisagem**: Interface otimizada para telas horizontais
+- **Formato Retrato**: Sobreposição educativa pedindo rotação do dispositivo
+- **Animações**: Ícone de dispositivo girando para orientar o usuário
+
+## 🚀 Próximos Passos
+
+### **1. Tutorial da Interface**
+- Desenvolver guia interativo mostrando como usar a toolbox
+- Explicar sistema de interação e construção de máquinas
+- Implementar tour guiado para novos usuários
+
+### **2. Primeira Máquina: Rampa Musical**
+- Implementar sistema onde bolinha descendo por rampas produz sons
+- Integrar biblioteca de áudio para feedback sonoro
+- Criar mecânica de diferentes tipos de rampa com sons únicos
+
+### **3. Toolbox de Elementos Mecânicos**
+Definir e implementar elementos interativos:
+- **Rampa** - Superfícies inclinadas para movimento
+- **Gangorra** - Alavancas balanceadas
+- **Balança** - Sistema de pesos e contrapesos
+- **Elástico** - Elementos com propriedades elásticas
+- **Pinça** - Ferramentas de manipulação
+- **Alavanca** - Mecanismos de força
+- **Roda** - Elementos rotativos
+- **Tubo** - Condutos para passagem de objetos
+- **Pistão** - Mecanismos de pressão
+
+### **4. Integração Planck.js**
+- Substituir simulações estáticas por física realista
+- Implementar colisões, gravidade e forças
+- Criar sistema de simulação em tempo real
 
 ## 🛠️ Tecnologias Utilizadas
 
-- **HTML5 Canvas**: Renderização 2D personalizada
-- **Matter.js**: Motor de física JavaScript
-- **CSS3**: Estilização moderna com variáveis CSS
-- **JavaScript ES6+**: Lógica do jogo e interações
-- **Google Fonts**: Tipografia Lora para estética elegante
+### **Atuais**
+- **HTML5** - Estrutura semântica e acessível
+- **CSS3** - Estilização moderna com Grid e Flexbox
+- **JavaScript (Vanilla)** - Lógica de interação sem dependências
+- **Google Fonts (Lora)** - Tipografia elegante
+
+### **Futuras**
+- **Planck.js** - Motor de física 2D para simulações realistas
+- **Web Audio API** - Sistema de áudio para feedback sonoro
+- **Canvas API** - Renderização avançada de elementos gráficos
 
 ## 🎨 Paleta de Cores
 
@@ -57,6 +102,11 @@ Faça a **bola laranja** cair dentro do **balde** usando a **rampa** disponível
 
 ## 🚀 Como Executar
 
+### **Pré-requisitos**
+- Navegador web moderno (Chrome, Firefox, Safari, Edge)
+- Conexão com internet (para Google Fonts)
+
+### **Instalação**
 1. **Clone o repositório**
    ```bash
    git clone https://github.com/linalopes/maquina-gepeto.git
@@ -67,57 +117,60 @@ Faça a **bola laranja** cair dentro do **balde** usando a **rampa** disponível
    ```bash
    open index.html
    ```
-   Ou simplesmente abra `index.html` em qualquer navegador moderno.
+   Ou simplesmente abra `index.html` em qualquer navegador.
 
 3. **Divirta-se!**
-   - Arraste a rampa para o campo
-   - Ajuste o ângulo com Q/E
-   - Clique em Play e observe a física em ação
+   - Explore a interface
+   - Teste os modais informativos
+   - Experimente a responsividade
 
 ## 📁 Estrutura do Projeto
 
 ```
 maquina-gepeto/
-├── index.html          # Arquivo principal do jogo
-├── background.png      # Textura de fundo (papel amassado)
-├── bucket.png          # Sprite do balde
-├── diary_icon.png      # Ícone do menu
-├── play_icon.png       # Ícone de play
-├── shelf.png           # Textura da prateleira
+├── SVG/                # Ícones vetoriais
+│   ├── circle1.svg     # Círculo variação 1
+│   ├── circle2.svg     # Círculo variação 2
+│   ├── circle3.svg     # Círculo variação 3
+│   ├── diary.svg       # Ícone do tutorial
+│   ├── lamp.svg        # Ícone dos autores
+│   ├── pen.svg         # Ícone do livro
+│   ├── Reference.svg   # Referência de interface
+│   ├── square1.svg     # Quadrado variação 1
+│   ├── square2.svg     # Quadrado variação 2
+│   └── square3.svg     # Quadrado variação 3
+├── version-matter-1/   # Versão com Matter.js
+│   ├── index.html      # Interface do nível
+│   ├── styles.css      # Estilos específicos
+│   └── background.png  # Textura de fundo
+├── index.html          # Interface principal
+├── styles.css          # Estilos globais
 └── README.md           # Este arquivo
 ```
 
-## 🔧 Funcionalidades Técnicas
+## 🎯 Funcionalidades Técnicas
 
-### Sistema de Física
-- **Gravidade**: Simulação realista da gravidade
-- **Colisões**: Detecção precisa de colisões entre objetos
-- **Fricção**: Resistência ao movimento para realismo
-- **Restituição**: Bounce realista da bola
+### **Sistema de Layout**
+- **CSS Grid** para layout principal (duas colunas)
+- **Flexbox** para alinhamento de componentes
+- **Media Queries** para responsividade
+- **CSS Variables** para consistência de cores
 
-### Sistema de Renderização
-- **Canvas 2D**: Renderização customizada para controle total
-- **Sprites**: Integração de imagens com física
-- **Animações**: Loop de renderização suave a 60fps
-- **Efeitos Visuais**: Texturas, sombras e gradientes
+### **Interatividade**
+- **Event Listeners** para todos os elementos clicáveis
+- **Modal System** com gerenciamento de foco
+- **Keyboard Navigation** para acessibilidade
+- **Orientation Detection** para experiência mobile
 
-### Interface do Usuário
-- **Drag & Drop**: Sistema intuitivo de arrastar e soltar
-- **Feedback Visual**: Dicas contextuais e estados visuais
-- **Controles de Teclado**: Atalhos para rotação
-- **Responsividade**: Adaptação a diferentes tamanhos de tela
-
-## 🎯 Roadmap
-
-- [ ] **Níveis Adicionais**: Mais desafios com diferentes mecânicas
-- [ ] **Sistema de Pontuação**: Ranking e tempo de conclusão
-- [ ] **Efeitos Sonoros**: Audio feedback para ações
-- [ ] **Modo Mobile**: Otimizações para dispositivos móveis
-- [ ] **Editor de Níveis**: Ferramenta para criar níveis customizados
+### **Acessibilidade**
+- **ARIA Labels** para leitores de tela
+- **Focus Management** em modais
+- **Keyboard Shortcuts** (Escape para fechar)
+- **High Contrast** para melhor visibilidade
 
 ## 🤝 Contribuições
 
-Contribuições são bem-vindas! Se você tem ideias para melhorar o jogo:
+Contribuições são bem-vindas! Se você tem ideias para melhorar o projeto:
 
 1. Fork o projeto
 2. Crie uma branch para sua feature (`git checkout -b feature/AmazingFeature`)
@@ -137,13 +190,13 @@ Este projeto está sob a licença MIT. Veja o arquivo `LICENSE` para mais detalh
 
 ## 🙏 Agradecimentos
 
-- **Matter.js** - Motor de física incrível
+- **The Incredible Machine** - Inspiração para a mecânica de jogo
 - **Google Fonts** - Tipografia Lora
-- **Comunidade Open Source** - Inspiração e recursos
+- **Comunidade Open Source** - Recursos e inspiração
 
 ---
 
 <div align="center">
-  <p><strong>Feito com ❤️ e muita física!</strong></p>
+  <p><strong>Feito com ❤️ e muita criatividade!</strong></p>
   <p>Se gostou do projeto, considere dar uma ⭐</p>
 </div>
