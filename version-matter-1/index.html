@@ -1,0 +1,461 @@
+<!doctype html>
+<html lang="pt-br">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Infância do GPT — Nível 0 (Tutorial)</title>
+
+  <!-- Google Fonts: Lora -->
+  <link href="https://fonts.googleapis.com/css2?family=Lora:wght@400;600;700&display=swap" rel="stylesheet">
+  <!-- Matter.js -->
+  <script src="https://unpkg.com/matter-js@0.19.0/build/matter.min.js"></script>
+
+  <style>
+    :root{
+      --paper:#f1e9d6; --turquoise:#20b2aa; --orange:#f3852e;
+      --brown:#8a5a3b; --ink:#2a2a2a;
+    }
+    *{ box-sizing:border-box; }
+    html,body{ height:100%; margin:0; background:#e8e0cc; }
+    body{
+      font-family:"Lora",serif; color:var(--ink);
+      display:flex; flex-direction:column; gap:.5rem;
+      background-image:url('../background.png'); background-size:260px 260px; background-repeat:repeat;
+    }
+    header{
+      display:flex; align-items:center; justify-content:space-between;
+      padding:.6rem 1rem; border-bottom:3px solid var(--brown);
+      background:rgba(255,255,255,.6); backdrop-filter:blur(2px);
+    }
+    .title{ font-weight:700; color:var(--brown); letter-spacing:.25px; }
+    .controls{ display:flex; gap:.6rem; }
+    .btn{
+      display:flex; align-items:center; gap:.45rem;
+      background:#fff; border:2px solid var(--brown); border-radius:10px;
+      padding:.35rem .7rem; cursor:pointer; user-select:none;
+      transition:.15s transform ease; box-shadow:1px 2px 0 var(--brown);
+    }
+    .btn:active{ transform:translateY(1px); box-shadow:0 1px 0 var(--brown); }
+    .btn img{ height:22px; width:auto; }
+    .btn.play{ border-color:var(--orange); box-shadow:1px 2px 0 var(--orange);}
+    .btn.reset{ border-color:var(--turquoise); box-shadow:1px 2px 0 var(--turquoise);}
+
+    .wrap{
+      display:grid; grid-template-columns:220px 1fr 240px; gap:12px;
+      padding:12px; max-width:1200px; margin:0 auto; width:100%;
+    }
+    .card{
+      background:rgba(255,255,255,.75);
+      border:3px solid var(--brown); border-radius:14px; padding:10px;
+      box-shadow:2px 3px 0 var(--brown);
+    }
+    .tool{
+      border:2px dashed var(--brown); border-radius:12px; padding:10px;
+      background:#fff; cursor:grab; user-select:none; margin-bottom:10px;
+      display:flex; align-items:center; gap:.5rem; justify-content:space-between;
+    }
+    .tool:active{ cursor:grabbing; }
+    .chip{ font-size:.8rem; color:#fff; background:var(--orange);
+      padding:.15rem .5rem; border-radius:999px; border:1px solid #d26e1f;}
+    .board{ position:relative; overflow:hidden; }
+    #game{ display:block; width:100%; height:auto; background:transparent; }
+    .hud{ position:absolute; inset:0; pointer-events:none; }
+    .hint{
+      position:absolute; left:12px; top:12px; max-width:62%;
+      background:rgba(255,255,255,.85); padding:.6rem .7rem;
+      border:2px solid var(--turquoise); border-radius:10px;
+      box-shadow:2px 2px 0 var(--turquoise); font-size:.95rem;
+    }
+    .hint kbd{ border:1px solid #bbb; padding:0 .35rem; border-radius:6px;
+      background:#fff; font-family:ui-monospace,monospace; font-size:.9em;}
+    .badge{ color:#fff; background:var(--turquoise); padding:.05rem .45rem; border-radius:8px; }
+    .banner{
+      position:absolute; left:50%; top:16px; transform:translateX(-50%);
+      background:#fff; border:3px solid var(--orange); padding:.5rem .8rem;
+      border-radius:12px; box-shadow:2px 3px 0 var(--orange); display:none;
+    }
+    .banner.show{ display:block; }
+    footer{ text-align:center; font-size:.85rem; color:#5b4a3f; opacity:.9; padding:8px 0 16px; }
+    .muted{ color:#666; font-size:.95rem; line-height:1.3; }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="title">Infância do GPT — <span style="color:var(--orange)">Nível 0</span> (Tutorial)</div>
+    <div class="controls">
+      <button id="btnPlay" class="btn play"><img src="../play_icon.png" alt="">Play</button>
+      <button id="btnReset" class="btn reset">Reset</button>
+      <button id="btnMenu" class="btn"><img src="../diary_icon.png" alt="">Menu</button>
+    </div>
+  </header>
+
+  <div class="wrap">
+    <aside class="card">
+      <h2 style="margin:.1rem 0 .5rem">Caixa de Ferramentas</h2>
+      <div id="toolRamp" class="tool" title="Arraste para o campo">
+        <div style="display:flex;align-items:center;gap:.55rem;">
+          <svg width="46" height="28" viewBox="0 0 46 28" aria-hidden="true">
+            <path d="M2 26 L42 26 L2 6 Z" fill="#e7c8a8" stroke="#8a5a3b" stroke-width="2"/>
+            <path d="M4 25 L38 25 L4 8 Z" fill="none" stroke="#8a5a3b" stroke-width="1" stroke-dasharray="4 3"/>
+          </svg>
+          <b>Rampa</b>
+        </div>
+        <span id="toolRampCount" class="chip">x4</span>
+      </div>
+      <p class="muted" style="margin:.2rem 0 0">
+        • Arraste a <b>Rampa</b> da Toolbox para o campo.<br>
+        • Clique para <b>selecionar</b>; gire com <kbd>Q</kbd>/<kbd>E</kbd>; arraste para reposicionar.<br>
+        • <b>Play</b> inicia a simulação; <b>Reset</b> recomeça (mantém rampas).
+      </p>
+    </aside>
+
+    <section class="card board">
+      <canvas id="game" width="960" height="600"></canvas>
+      <div class="hud">
+        <div id="bannerWin" class="banner">🎉 Conseguiu! A bola está no balde.</div>
+      </div>
+    </section>
+
+    <aside class="card">
+      <h3 style="margin:.1rem 0 .4rem">Objetivo</h3>
+      <p class="muted">
+        Faça a <span class="badge">Bola</span> cair dentro do <span class="badge">Balde</span> usando as
+        <span class="badge">Rampas</span>.
+      </p>
+      <ol class="muted" style="margin:.4rem 0 .6rem; padding-left:1.1rem;">
+        <li>Arraste rampas da <b>Toolbox</b> (você tem 4).</li>
+        <li>Clique na rampa para <b>selecionar</b>; gire com <b>Q/E</b>; arraste para ajustar.</li>
+        <li>Clique <b>Play</b> para testar. Use <b>Reset</b> para tentar de novo (mantém rampas).</li>
+      </ol>
+      <hr style="border:none;border-top:1px dashed #b98a6b; margin:.5rem 0;">
+      <div class="muted">Tentativas: <span id="tries">0</span> • Tempo: <span id="time">0.0s</span></div>
+    </aside>
+
+  </div>
+
+  <footer>Colagem/giz: laranja, turquoise, marrom • Tipografia: Lora • Física: Matter.js (Canvas 2D)</footer>
+
+<script>
+/* ========= Level 0 — Tutorial =========
+   - No initial ramp; toolbox x2
+   - Select & drag ramps on canvas; rotate with Q/E
+   - Editing mode vs Playing mode
+   - Reset keeps ramps; only ball/time reset
+   Comments in English for clarity.
+=================================================== */
+
+const { Engine, World, Bodies, Body, Events, Mouse, MouseConstraint, Query } = Matter;
+
+const canvas = document.getElementById('game');
+const ctx = canvas.getContext('2d');
+
+// UI refs
+const btnPlay = document.getElementById('btnPlay');
+const btnReset = document.getElementById('btnReset');
+const btnMenu = document.getElementById('btnMenu');
+const bannerWin = document.getElementById('bannerWin');
+const triesEl = document.getElementById('tries');
+const timeEl  = document.getElementById('time');
+const toolRamp = document.getElementById('toolRamp');
+const toolRampCountEl = document.getElementById('toolRampCount');
+
+// Assets
+const imgBucket = new Image(); imgBucket.src = '../bucket.png';
+
+// World/engine
+let engine, world;
+let editing = true;        // editing vs playing
+let tries = 0, levelStartTime = 0, timerInterval = null;
+
+// Bodies
+let ball, bucketWalls=[], goalSensor;
+let ramps = [];            // placed ramps (static)
+let selected = null;       // selected ramp body
+
+// Toolbox count
+let rampCount = 4;
+
+// Dragging inside canvas (for static ramps)
+let isDragging = false;
+let dragOffset = {x:0,y:0};
+
+// Constants
+const toRad = d => d*Math.PI/180;
+const toDeg = r => r*180/Math.PI;
+
+// Bucket sprite placement
+const BUCKET_ANCHOR = { x: 760, y: 420 };
+const BUCKET_SCALE  = 0.75;
+
+// Setup
+function setup(){
+  engine = Engine.create({ gravity:{x:0,y:1} });
+  world = engine.world;
+
+  // floor
+  const floor = Bodies.rectangle(480, 610, 960, 60, { isStatic:true, render:{visible:false} });
+  World.add(world, floor);
+
+  // ball
+  ball = Bodies.circle(120, 160, 20, { restitution:.2, friction:.05, frictionAir:.01, label:'ball' });
+  World.add(world, ball);
+
+  // bucket physics (aligned to sprite)
+  const bx=800, by=540, wallH=90, wallT=12, innerW=90;
+  const left  = Bodies.rectangle(bx-innerW/2, by-wallH/2, wallT, wallH, { isStatic:true, label:'bucket'});
+  const right = Bodies.rectangle(bx+innerW/2, by-wallH/2, wallT, wallH, { isStatic:true, label:'bucket'});
+  const base  = Bodies.rectangle(bx, by, innerW, wallT, { isStatic:true, label:'bucket'});
+  bucketWalls=[left,right,base];
+  World.add(world, bucketWalls);
+
+  goalSensor = Bodies.rectangle(bx, by-10, innerW-12, 20, { isStatic:true, isSensor:true, label:'goalSensor' });
+  World.add(world, goalSensor);
+
+  // win detection
+  let inside=false, insideSince=0;
+  Events.on(engine,'collisionActive', e=>{
+    if(!editing){
+      e.pairs.forEach(p=>{
+        const a=p.bodyA,b=p.bodyB;
+        if((a===ball && b===goalSensor) || (b===ball && a===goalSensor)){
+          const now=performance.now();
+          if(!inside){ inside=true; insideSince=now; }
+          if(inside && ball.speed<0.3 && (now-insideSince)>1000) showWin();
+        }
+      });
+    }
+  });
+  Events.on(engine,'collisionEnd', e=>{
+    e.pairs.forEach(p=>{
+      const a=p.bodyA,b=p.bodyB;
+      if((a===ball && b===goalSensor) || (b===ball && a===goalSensor)){
+        // left sensor region; timer will naturally reset via logic above
+      }
+    });
+  });
+
+  // Mouse (for hit testing coordinates)
+  const mouse = Mouse.create(canvas);
+  mouse.pixelRatio = window.devicePixelRatio||1;
+
+  // Canvas events (custom drag/select)
+  canvas.addEventListener('pointerdown', onPointerDown);
+  window.addEventListener('pointermove', onPointerMove);
+  window.addEventListener('pointerup', onPointerUp);
+  window.addEventListener('keydown', onKeyRotate);
+
+  // Toolbox
+  toolRamp.addEventListener('pointerdown', startPlacingFromTool);
+
+  // Start loop & timer
+  levelStartTime = performance.now();
+  updateTimer(true);
+  requestAnimationFrame(loop);
+}
+
+function updateTimer(reset=false){
+  if(reset && timerInterval) clearInterval(timerInterval);
+  timerInterval=setInterval(()=>{
+    const secs=(performance.now()-levelStartTime)/1000;
+    timeEl.textContent = secs.toFixed(1)+'s';
+  },100);
+}
+
+// ===== Toolbox: create ramp on drag start =====
+let placing = null;
+function startPlacingFromTool(ev){
+  if(rampCount<=0 || !editing) return;
+  const pos = screenToWorld(ev.clientX, ev.clientY);
+  placing = Bodies.rectangle(pos.x, pos.y, 180, 16, {
+    isStatic:true, angle: toRad(-20), friction:.5, label:'piece_ramp', render:{visible:false}
+  });
+  World.add(world, placing);
+  toolRamp.style.opacity=.45;
+  ev.preventDefault();
+}
+window.addEventListener('pointermove', (ev)=>{
+  if(placing){
+    const pos = screenToWorld(ev.clientX, ev.clientY);
+    Body.setPosition(placing, pos);
+  }
+});
+window.addEventListener('pointerup', (ev)=>{
+  if (placing){
+    const r = canvas.getBoundingClientRect();
+    if (ev.clientX>=r.left && ev.clientX<=r.right && ev.clientY>=r.top && ev.clientY<=r.bottom){
+      ramps.push(placing);
+      selected = placing;
+      placing = null;
+      rampCount--; toolRampCountEl.textContent = 'x'+rampCount;
+      if (rampCount<=0){ toolRamp.style.opacity=.5; toolRamp.style.pointerEvents='none'; }
+    } else {
+      Matter.World.remove(world, placing);
+      placing=null; toolRamp.style.opacity=1;
+    }
+  }
+});
+
+
+// ===== Selection & drag inside canvas =====
+function onPointerDown(ev){
+  if(!editing) return;
+  const p = screenToWorld(ev.clientX, ev.clientY);
+  // Hit test ramps (check nearest first by simple reverse order)
+  const hits = Query.point(ramps, p);
+  if(hits.length){
+    // choose top-most by last in ramps (simple heuristic)
+    let picked = hits[hits.length-1];
+    selected = picked;
+    // start drag
+    isDragging = true;
+    dragOffset.x = p.x - selected.position.x;
+    dragOffset.y = p.y - selected.position.y;
+    canvas.style.cursor='grabbing';
+  }else{
+    selected = null;
+  }
+}
+function onPointerMove(ev){
+  if(!editing) return;
+  if(isDragging && selected){
+    const p = screenToWorld(ev.clientX, ev.clientY);
+    Body.setPosition(selected, { x: p.x - dragOffset.x, y: p.y - dragOffset.y });
+  }
+}
+function onPointerUp(){
+  if(!editing) return;
+  isDragging=false; canvas.style.cursor='default';
+}
+
+// ===== Rotation (Q/E) only for selected ramp in editing =====
+function onKeyRotate(e){
+  if(!editing || !selected) return;
+  const k = e.key.toLowerCase();
+  if(k==='q'){ nudgeRotation(selected,-5); }
+  else if(k==='e'){ nudgeRotation(selected, +5); }
+}
+function nudgeRotation(body, deltaDeg){
+  const rad = toRad(toDeg(body.angle)+deltaDeg);
+  Body.setAngle(body, rad);
+}
+
+// ===== Controls =====
+btnPlay.addEventListener('click', ()=>{
+  if(editing){
+    editing=false; bannerWin.classList.remove('show');
+    tries++; triesEl.textContent=tries;
+  }
+});
+btnReset.addEventListener('click', ()=>{
+  // stop playing, reset ball/time; keep ramps
+  editing=true; bannerWin.classList.remove('show');
+  Body.setPosition(ball, {x:120,y:160});
+  Body.setVelocity(ball, {x:0,y:0});
+  Body.setAngularVelocity(ball, 0);
+  Body.setAngle(ball, 0);
+  levelStartTime=performance.now(); updateTimer(true);
+});
+btnMenu.addEventListener('click', ()=>alert('Menu (placeholder)'));
+
+// ===== Win =====
+function showWin(){
+  editing=true; // pause back to editing after win
+  bannerWin.classList.add('show');
+}
+
+// ===== Helpers =====
+function screenToWorld(cx, cy){
+  const r = canvas.getBoundingClientRect();
+  const scaleX = canvas.width  / r.width;
+  const scaleY = canvas.height / r.height;
+  return {
+    x: (cx - r.left) * scaleX,
+    y: (cy - r.top)  * scaleY
+  };
+}
+
+
+// ===== Render loop (custom drawing) =====
+function loop(){
+  if(!editing){ Matter.Engine.update(engine, 1000/60); }
+
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  drawGrid();
+
+  // ramps
+  ramps.forEach(b=>{
+    const isSel = (b===selected);
+    drawPlank(b.position.x, b.position.y, 180, 16, b.angle, '#f1d9b8', false, isSel);
+  });
+  if(placing){ drawPlank(placing.position.x, placing.position.y, 180, 16, placing.angle, 'rgba(241,217,184,.7)', true, false); }
+
+  // ball
+  drawBall(ball.position.x, ball.position.y, 20);
+
+  // bucket sprite
+  drawBucketSprite();
+
+  requestAnimationFrame(loop);
+}
+
+function drawGrid(){
+  const step=40;
+  ctx.save();
+  ctx.globalAlpha=.18;
+  ctx.beginPath();
+  for(let x=0;x<=canvas.width;x+=step){ ctx.moveTo(x,0); ctx.lineTo(x,canvas.height); }
+  for(let y=0;y<=canvas.height;y+=step){ ctx.moveTo(0,y); ctx.lineTo(canvas.width,y); }
+  ctx.strokeStyle='#a9cfcf'; ctx.lineWidth=1; ctx.stroke();
+  ctx.restore();
+}
+function drawPlank(x,y,w,h,ang,fill,ghost=false,selected=false){
+  ctx.save(); ctx.translate(x,y); ctx.rotate(ang);
+  ctx.fillStyle=fill; ctx.strokeStyle='#8a5a3b'; ctx.lineWidth=2;
+  roundRect(ctx,-w/2,-h/2,w,h,6); ctx.fill(); ctx.stroke();
+  // hatching
+  ctx.globalAlpha=.25; ctx.beginPath();
+  for(let i=-w/2+6;i<w/2-6;i+=10){ ctx.moveTo(i,-h/2+3); ctx.lineTo(i+8,h/2-3); }
+  ctx.strokeStyle='#8a5a3b'; ctx.lineWidth=1; ctx.stroke();
+  ctx.globalAlpha=1;
+
+  if(ghost){
+    ctx.setLineDash([6,6]); ctx.strokeStyle='#20b2aa'; ctx.lineWidth=2;
+    ctx.strokeRect(-w/2,-h/2,w,h); ctx.setLineDash([]);
+  }
+  if(selected){
+    ctx.setLineDash([8,5]); ctx.strokeStyle='#f3852e'; ctx.lineWidth=3;
+    ctx.strokeRect(-w/2-3,-h/2-3,w+6,h+6); ctx.setLineDash([]);
+  }
+  ctx.restore();
+}
+function roundRect(ctx,x,y,w,h,r){
+  ctx.beginPath();
+  ctx.moveTo(x+r,y);
+  ctx.arcTo(x+w,y,x+w,y+h,r);
+  ctx.arcTo(x+w,y+h,x,y+h,r);
+  ctx.arcTo(x,y+h,x,y,r);
+  ctx.arcTo(x,y,x+w,y,r);
+  ctx.closePath();
+}
+function drawBall(x,y,r){
+  ctx.save(); ctx.translate(x,y);
+  ctx.beginPath(); ctx.arc(0,0,r,0,Math.PI*2);
+  ctx.fillStyle='#f3852e'; ctx.fill();
+  ctx.lineWidth=3; ctx.strokeStyle='#d26e1f'; ctx.stroke();
+  ctx.globalAlpha=.25;
+  for(let i=0;i<14;i++){ ctx.beginPath();
+    ctx.arc(0,0,r-2-i*0.8, Math.random()*Math.PI*2, Math.random()*Math.PI*2);
+    ctx.strokeStyle='#ffffff'; ctx.lineWidth=.7; ctx.stroke();
+  }
+  ctx.restore();
+}
+function drawBucketSprite(){
+  const w = 300*BUCKET_SCALE, h = 300*BUCKET_SCALE;
+  ctx.drawImage(imgBucket, BUCKET_ANCHOR.x, BUCKET_ANCHOR.y, w, h);
+}
+
+// Boot
+setup();
+</script>
+</body>
+</html>

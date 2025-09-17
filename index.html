@@ -1,461 +1,588 @@
-<!doctype html>
-<html lang="pt-br">
+<!DOCTYPE html>
+<html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Infância do GPT — Nível 0 (Tutorial)</title>
-
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>The Machine's Gepeto</title>
+  
   <!-- Google Fonts: Lora -->
   <link href="https://fonts.googleapis.com/css2?family=Lora:wght@400;600;700&display=swap" rel="stylesheet">
-  <!-- Matter.js -->
-  <script src="https://unpkg.com/matter-js@0.19.0/build/matter.min.js"></script>
-
+  
   <style>
-    :root{
-      --paper:#f1e9d6; --turquoise:#20b2aa; --orange:#f3852e;
-      --brown:#8a5a3b; --ink:#2a2a2a;
+    :root {
+      --paper: #f1e9d6;
+      --turquoise: #20b2aa;
+      --orange: #f3852e;
+      --brown: #8a5a3b;
+      --ink: #2a2a2a;
     }
-    *{ box-sizing:border-box; }
-    html,body{ height:100%; margin:0; background:#e8e0cc; }
-    body{
-      font-family:"Lora",serif; color:var(--ink);
-      display:flex; flex-direction:column; gap:.5rem;
-      background-image:url('background.png'); background-size:260px 260px; background-repeat:repeat;
+    
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
     }
-    header{
-      display:flex; align-items:center; justify-content:space-between;
-      padding:.6rem 1rem; border-bottom:3px solid var(--brown);
-      background:rgba(255,255,255,.6); backdrop-filter:blur(2px);
+    
+    html, body {
+      height: 100%;
+      font-family: 'Lora', serif;
+      background: var(--paper);
+      color: var(--ink);
     }
-    .title{ font-weight:700; color:var(--brown); letter-spacing:.25px; }
-    .controls{ display:flex; gap:.6rem; }
-    .btn{
-      display:flex; align-items:center; gap:.45rem;
-      background:#fff; border:2px solid var(--brown); border-radius:10px;
-      padding:.35rem .7rem; cursor:pointer; user-select:none;
-      transition:.15s transform ease; box-shadow:1px 2px 0 var(--brown);
+    
+    /* Orientation overlay for portrait mode */
+    .orientation-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: var(--paper);
+      display: none;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      z-index: 9999;
+      text-align: center;
     }
-    .btn:active{ transform:translateY(1px); box-shadow:0 1px 0 var(--brown); }
-    .btn img{ height:22px; width:auto; }
-    .btn.play{ border-color:var(--orange); box-shadow:1px 2px 0 var(--orange);}
-    .btn.reset{ border-color:var(--turquoise); box-shadow:1px 2px 0 var(--turquoise);}
-
-    .wrap{
-      display:grid; grid-template-columns:220px 1fr 240px; gap:12px;
-      padding:12px; max-width:1200px; margin:0 auto; width:100%;
+    
+    .orientation-overlay.show {
+      display: flex;
     }
-    .card{
-      background:rgba(255,255,255,.75);
-      border:3px solid var(--brown); border-radius:14px; padding:10px;
-      box-shadow:2px 3px 0 var(--brown);
+    
+    .orientation-message {
+      font-size: 2rem;
+      font-weight: 700;
+      color: var(--ink);
+      margin-bottom: 1rem;
     }
-    .tool{
-      border:2px dashed var(--brown); border-radius:12px; padding:10px;
-      background:#fff; cursor:grab; user-select:none; margin-bottom:10px;
-      display:flex; align-items:center; gap:.5rem; justify-content:space-between;
+    
+    .orientation-subtitle {
+      font-size: 1rem;
+      color: var(--brown);
+      margin-bottom: 2rem;
     }
-    .tool:active{ cursor:grabbing; }
-    .chip{ font-size:.8rem; color:#fff; background:var(--orange);
-      padding:.15rem .5rem; border-radius:999px; border:1px solid #d26e1f;}
-    .board{ position:relative; overflow:hidden; }
-    #game{ display:block; width:100%; height:auto; background:transparent; }
-    .hud{ position:absolute; inset:0; pointer-events:none; }
-    .hint{
-      position:absolute; left:12px; top:12px; max-width:62%;
-      background:rgba(255,255,255,.85); padding:.6rem .7rem;
-      border:2px solid var(--turquoise); border-radius:10px;
-      box-shadow:2px 2px 0 var(--turquoise); font-size:.95rem;
+    
+    .device-icon {
+      width: 80px;
+      height: 80px;
+      border: 3px solid var(--brown);
+      border-radius: 12px;
+      position: relative;
+      animation: rotate-device 2s ease-in-out infinite;
     }
-    .hint kbd{ border:1px solid #bbb; padding:0 .35rem; border-radius:6px;
-      background:#fff; font-family:ui-monospace,monospace; font-size:.9em;}
-    .badge{ color:#fff; background:var(--turquoise); padding:.05rem .45rem; border-radius:8px; }
-    .banner{
-      position:absolute; left:50%; top:16px; transform:translateX(-50%);
-      background:#fff; border:3px solid var(--orange); padding:.5rem .8rem;
-      border-radius:12px; box-shadow:2px 3px 0 var(--orange); display:none;
+    
+    .device-icon::before {
+      content: '';
+      position: absolute;
+      top: 8px;
+      left: 8px;
+      right: 8px;
+      bottom: 8px;
+      border: 2px solid var(--orange);
+      border-radius: 6px;
     }
-    .banner.show{ display:block; }
-    footer{ text-align:center; font-size:.85rem; color:#5b4a3f; opacity:.9; padding:8px 0 16px; }
-    .muted{ color:#666; font-size:.95rem; line-height:1.3; }
+    
+    @keyframes rotate-device {
+      0%, 100% { transform: rotate(0deg); }
+      50% { transform: rotate(90deg); }
+    }
+    
+    /* Main layout - hidden in portrait */
+    .app {
+      display: none;
+      min-height: 100vh;
+      flex-direction: column;
+    }
+    
+    .app.show {
+      display: flex;
+    }
+    
+    /* Header */
+    .header {
+      padding: 1.5rem 2rem;
+      border-bottom: 3px solid var(--brown);
+      background: rgba(255, 255, 255, 0.8);
+      backdrop-filter: blur(2px);
+    }
+    
+    .title {
+      font-size: 2rem;
+      font-weight: 700;
+      color: var(--ink);
+    }
+    
+    .title::after {
+      content: '';
+      display: block;
+      width: 100px;
+      height: 3px;
+      background: var(--orange);
+      margin-top: 0.5rem;
+    }
+    
+    /* Main content area */
+    .main-content {
+      flex: 1;
+      display: grid;
+      grid-template-columns: 1fr 280px;
+      gap: 2rem;
+      padding: 2rem;
+      max-width: 1200px;
+      margin: 0 auto;
+      width: 100%;
+    }
+    
+    /* Levels card */
+    .levels-card {
+      background: rgba(255, 255, 255, 0.8);
+      border: 3px solid var(--brown);
+      border-radius: 16px;
+      padding: 1.5rem;
+      box-shadow: 2px 3px 0 var(--brown);
+      position: relative;
+    }
+    
+    .levels-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: var(--orange);
+      border-radius: 13px 13px 0 0;
+    }
+    
+    .levels-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1rem;
+      margin-top: 1rem;
+    }
+    
+    .level-button {
+      aspect-ratio: 1;
+      border: 2px solid var(--brown);
+      border-radius: 14px;
+      background: white;
+      color: var(--ink);
+      font-family: 'Lora', serif;
+      font-size: 1.5rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 1px 2px 0 var(--brown);
+    }
+    
+    .level-button:hover,
+    .level-button:focus {
+      background: rgba(32, 178, 170, 0.12);
+      transform: translateY(-1px);
+      box-shadow: 2px 3px 0 var(--brown);
+      outline: 2px solid var(--turquoise);
+      outline-offset: 2px;
+    }
+    
+    .level-button:active {
+      transform: translateY(1px);
+      box-shadow: 0 1px 0 var(--brown);
+    }
+    
+    /* Sidebar */
+    .sidebar {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+    
+    .sidebar-item {
+      background: rgba(255, 255, 255, 0.8);
+      border: 3px solid var(--brown);
+      border-radius: 16px;
+      padding: 1rem;
+      box-shadow: 2px 3px 0 var(--brown);
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+    
+    .sidebar-item:hover,
+    .sidebar-item:focus {
+      transform: translateY(-1px);
+      box-shadow: 3px 4px 0 var(--brown);
+      outline: 2px solid var(--turquoise);
+      outline-offset: 2px;
+    }
+    
+    .sidebar-item:active {
+      transform: translateY(1px);
+      box-shadow: 1px 2px 0 var(--brown);
+    }
+    
+    .icon-badge {
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      background: white;
+      border: 3px solid var(--orange);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      transition: all 0.2s ease;
+    }
+    
+    .sidebar-item:hover .icon-badge,
+    .sidebar-item:focus .icon-badge {
+      box-shadow: 0 0 0 3px rgba(243, 133, 46, 0.3);
+    }
+    
+    .icon-badge img {
+      width: 40px;
+      height: 40px;
+    }
+    
+    .sidebar-label {
+      font-weight: 600;
+      color: var(--ink);
+    }
+    
+    /* Modal styles */
+    .modal-backdrop {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(42, 42, 42, 0.35);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+    }
+    
+    .modal-backdrop.show {
+      display: flex;
+    }
+    
+    .modal-card {
+      background: white;
+      border: 3px solid var(--brown);
+      border-radius: 16px;
+      padding: 2rem;
+      max-width: 560px;
+      width: 90%;
+      max-height: 80vh;
+      overflow-y: auto;
+      box-shadow: 4px 6px 0 var(--brown);
+      position: relative;
+    }
+    
+    .modal-close {
+      position: absolute;
+      top: 1rem;
+      right: 1rem;
+      width: 32px;
+      height: 32px;
+      border: 2px solid var(--brown);
+      border-radius: 50%;
+      background: white;
+      color: var(--ink);
+      font-size: 1.2rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s ease;
+    }
+    
+    .modal-close:hover,
+    .modal-close:focus {
+      background: var(--turquoise);
+      color: white;
+      outline: 2px solid var(--turquoise);
+      outline-offset: 2px;
+    }
+    
+    .modal-title {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--ink);
+      margin-bottom: 1rem;
+    }
+    
+    .modal-content {
+      color: var(--ink);
+      line-height: 1.6;
+    }
+    
+    /* Screen reader only helper */
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    }
+    
+    /* Responsive adjustments */
+    @media (max-width: 768px) {
+      .main-content {
+        grid-template-columns: 1fr 240px;
+        gap: 1.5rem;
+        padding: 1.5rem;
+      }
+      
+      .levels-grid {
+        gap: 0.75rem;
+      }
+      
+      .level-button {
+        font-size: 1.25rem;
+      }
+      
+      .title {
+        font-size: 1.75rem;
+      }
+    }
+    
+    /* Portrait orientation - show overlay */
+    @media (orientation: portrait) {
+      .orientation-overlay {
+        display: flex;
+      }
+      
+      .app {
+        display: none;
+      }
+    }
   </style>
 </head>
 <body>
-  <header>
-    <div class="title">Infância do GPT — <span style="color:var(--orange)">Nível 0</span> (Tutorial)</div>
-    <div class="controls">
-      <button id="btnPlay" class="btn play"><img src="play_icon.png" alt="">Play</button>
-      <button id="btnReset" class="btn reset">Reset</button>
-      <button id="btnMenu" class="btn"><img src="diary_icon.png" alt="">Menu</button>
-    </div>
-  </header>
-
-  <div class="wrap">
-    <aside class="card">
-      <h2 style="margin:.1rem 0 .5rem">Caixa de Ferramentas</h2>
-      <div id="toolRamp" class="tool" title="Arraste para o campo">
-        <div style="display:flex;align-items:center;gap:.55rem;">
-          <svg width="46" height="28" viewBox="0 0 46 28" aria-hidden="true">
-            <path d="M2 26 L42 26 L2 6 Z" fill="#e7c8a8" stroke="#8a5a3b" stroke-width="2"/>
-            <path d="M4 25 L38 25 L4 8 Z" fill="none" stroke="#8a5a3b" stroke-width="1" stroke-dasharray="4 3"/>
-          </svg>
-          <b>Rampa</b>
-        </div>
-        <span id="toolRampCount" class="chip">x4</span>
-      </div>
-      <p class="muted" style="margin:.2rem 0 0">
-        • Arraste a <b>Rampa</b> da Toolbox para o campo.<br>
-        • Clique para <b>selecionar</b>; gire com <kbd>Q</kbd>/<kbd>E</kbd>; arraste para reposicionar.<br>
-        • <b>Play</b> inicia a simulação; <b>Reset</b> recomeça (mantém rampas).
-      </p>
-    </aside>
-
-    <section class="card board">
-      <canvas id="game" width="960" height="600"></canvas>
-      <div class="hud">
-        <div id="bannerWin" class="banner">🎉 Conseguiu! A bola está no balde.</div>
-      </div>
-    </section>
-
-    <aside class="card">
-      <h3 style="margin:.1rem 0 .4rem">Objetivo</h3>
-      <p class="muted">
-        Faça a <span class="badge">Bola</span> cair dentro do <span class="badge">Balde</span> usando as
-        <span class="badge">Rampas</span>.
-      </p>
-      <ol class="muted" style="margin:.4rem 0 .6rem; padding-left:1.1rem;">
-        <li>Arraste rampas da <b>Toolbox</b> (você tem 4).</li>
-        <li>Clique na rampa para <b>selecionar</b>; gire com <b>Q/E</b>; arraste para ajustar.</li>
-        <li>Clique <b>Play</b> para testar. Use <b>Reset</b> para tentar de novo (mantém rampas).</li>
-      </ol>
-      <hr style="border:none;border-top:1px dashed #b98a6b; margin:.5rem 0;">
-      <div class="muted">Tentativas: <span id="tries">0</span> • Tempo: <span id="time">0.0s</span></div>
-    </aside>
-
+  <!-- Orientation overlay for portrait mode -->
+  <div class="orientation-overlay" id="orientationOverlay">
+    <div class="orientation-message">Please rotate your device</div>
+    <div class="orientation-subtitle">This experience works in landscape.</div>
+    <div class="device-icon"></div>
   </div>
-
-  <footer>Colagem/giz: laranja, turquoise, marrom • Tipografia: Lora • Física: Matter.js (Canvas 2D)</footer>
-
-<script>
-/* ========= Level 0 — Tutorial =========
-   - No initial ramp; toolbox x2
-   - Select & drag ramps on canvas; rotate with Q/E
-   - Editing mode vs Playing mode
-   - Reset keeps ramps; only ball/time reset
-   Comments in English for clarity.
-=================================================== */
-
-const { Engine, World, Bodies, Body, Events, Mouse, MouseConstraint, Query } = Matter;
-
-const canvas = document.getElementById('game');
-const ctx = canvas.getContext('2d');
-
-// UI refs
-const btnPlay = document.getElementById('btnPlay');
-const btnReset = document.getElementById('btnReset');
-const btnMenu = document.getElementById('btnMenu');
-const bannerWin = document.getElementById('bannerWin');
-const triesEl = document.getElementById('tries');
-const timeEl  = document.getElementById('time');
-const toolRamp = document.getElementById('toolRamp');
-const toolRampCountEl = document.getElementById('toolRampCount');
-
-// Assets
-const imgBucket = new Image(); imgBucket.src = 'bucket.png';
-
-// World/engine
-let engine, world;
-let editing = true;        // editing vs playing
-let tries = 0, levelStartTime = 0, timerInterval = null;
-
-// Bodies
-let ball, bucketWalls=[], goalSensor;
-let ramps = [];            // placed ramps (static)
-let selected = null;       // selected ramp body
-
-// Toolbox count
-let rampCount = 4;
-
-// Dragging inside canvas (for static ramps)
-let isDragging = false;
-let dragOffset = {x:0,y:0};
-
-// Constants
-const toRad = d => d*Math.PI/180;
-const toDeg = r => r*180/Math.PI;
-
-// Bucket sprite placement
-const BUCKET_ANCHOR = { x: 760, y: 420 };
-const BUCKET_SCALE  = 0.75;
-
-// Setup
-function setup(){
-  engine = Engine.create({ gravity:{x:0,y:1} });
-  world = engine.world;
-
-  // floor
-  const floor = Bodies.rectangle(480, 610, 960, 60, { isStatic:true, render:{visible:false} });
-  World.add(world, floor);
-
-  // ball
-  ball = Bodies.circle(120, 160, 20, { restitution:.2, friction:.05, frictionAir:.01, label:'ball' });
-  World.add(world, ball);
-
-  // bucket physics (aligned to sprite)
-  const bx=800, by=540, wallH=90, wallT=12, innerW=90;
-  const left  = Bodies.rectangle(bx-innerW/2, by-wallH/2, wallT, wallH, { isStatic:true, label:'bucket'});
-  const right = Bodies.rectangle(bx+innerW/2, by-wallH/2, wallT, wallH, { isStatic:true, label:'bucket'});
-  const base  = Bodies.rectangle(bx, by, innerW, wallT, { isStatic:true, label:'bucket'});
-  bucketWalls=[left,right,base];
-  World.add(world, bucketWalls);
-
-  goalSensor = Bodies.rectangle(bx, by-10, innerW-12, 20, { isStatic:true, isSensor:true, label:'goalSensor' });
-  World.add(world, goalSensor);
-
-  // win detection
-  let inside=false, insideSince=0;
-  Events.on(engine,'collisionActive', e=>{
-    if(!editing){
-      e.pairs.forEach(p=>{
-        const a=p.bodyA,b=p.bodyB;
-        if((a===ball && b===goalSensor) || (b===ball && a===goalSensor)){
-          const now=performance.now();
-          if(!inside){ inside=true; insideSince=now; }
-          if(inside && ball.speed<0.3 && (now-insideSince)>1000) showWin();
+  
+  <!-- Main app -->
+  <div class="app" id="app">
+    <!-- Header -->
+    <header class="header">
+      <h1 class="title">The Machine's Gepeto</h1>
+    </header>
+    
+    <!-- Main content -->
+    <main class="main-content">
+      <!-- Levels card -->
+      <div class="levels-card">
+        <h2>Levels</h2>
+        <div class="levels-grid" id="levelsGrid">
+          <!-- Level buttons will be generated by JavaScript -->
+        </div>
+      </div>
+      
+      <!-- Sidebar -->
+      <aside class="sidebar">
+        <button class="sidebar-item" id="tutorialBtn" aria-label="Open Tutorial">
+          <div class="icon-badge">
+            <img src="/SVG/diary.svg" alt="" aria-hidden="true">
+          </div>
+          <span class="sidebar-label">Tutorial</span>
+        </button>
+        
+        <button class="sidebar-item" id="authorsBtn" aria-label="Open Authors">
+          <div class="icon-badge">
+            <img src="/SVG/lamp.svg" alt="" aria-hidden="true">
+          </div>
+          <span class="sidebar-label">Authors</span>
+        </button>
+        
+        <button class="sidebar-item" id="bookBtn" aria-label="Open Book">
+          <div class="icon-badge">
+            <img src="/SVG/pen.svg" alt="" aria-hidden="true">
+          </div>
+          <span class="sidebar-label">Book</span>
+        </button>
+      </aside>
+    </main>
+  </div>
+  
+  <!-- Modal backdrop -->
+  <div class="modal-backdrop" id="modalBackdrop">
+    <div class="modal-card">
+      <button class="modal-close" id="modalClose" aria-label="Close modal">&times;</button>
+      <h2 class="modal-title" id="modalTitle"></h2>
+      <div class="modal-content" id="modalContent"></div>
+    </div>
+  </div>
+  
+  <script>
+    // Orientation handling
+    function checkOrientation() {
+      const overlay = document.getElementById('orientationOverlay');
+      const app = document.getElementById('app');
+      
+      if (window.matchMedia('(orientation: portrait)').matches) {
+        overlay.classList.add('show');
+        app.classList.remove('show');
+      } else {
+        overlay.classList.remove('show');
+        app.classList.add('show');
+      }
+    }
+    
+    // Check orientation on load and resize
+    checkOrientation();
+    window.addEventListener('resize', checkOrientation);
+    window.addEventListener('orientationchange', () => {
+      setTimeout(checkOrientation, 100); // Small delay for orientation change
+    });
+    
+    // Modal utility
+    function openModal({ title, bodyHTML }) {
+      const backdrop = document.getElementById('modalBackdrop');
+      const modalTitle = document.getElementById('modalTitle');
+      const modalContent = document.getElementById('modalContent');
+      
+      modalTitle.textContent = title;
+      modalContent.innerHTML = bodyHTML;
+      backdrop.classList.add('show');
+      
+      // Focus trap
+      const focusableElements = backdrop.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
+      const firstElement = focusableElements[0];
+      const lastElement = focusableElements[focusableElements.length - 1];
+      
+      if (firstElement) firstElement.focus();
+      
+      // Handle tab cycling
+      backdrop.addEventListener('keydown', handleTabKey);
+      
+      function handleTabKey(e) {
+        if (e.key === 'Tab') {
+          if (e.shiftKey) {
+            if (document.activeElement === firstElement) {
+              lastElement.focus();
+              e.preventDefault();
+            }
+          } else {
+            if (document.activeElement === lastElement) {
+              firstElement.focus();
+              e.preventDefault();
+            }
+          }
         }
+      }
+    }
+    
+    function closeModal() {
+      const backdrop = document.getElementById('modalBackdrop');
+      backdrop.classList.remove('show');
+      backdrop.removeEventListener('keydown', handleTabKey);
+    }
+    
+    // Level button functionality
+    function openLevel(levelNumber) {
+      console.log(`openLevel(${levelNumber})`);
+      // Placeholder for future level navigation
+    }
+    
+    // Sidebar button functions
+    function openTutorial() {
+      openModal({
+        title: 'Tutorial',
+        bodyHTML: `
+          <p>Welcome to The Machine's Gepeto! This is a physics-based puzzle game where you'll help guide objects to their destinations.</p>
+          <p><strong>How to play:</strong></p>
+          <ul>
+            <li>Select a level from the grid on the left</li>
+            <li>Use the available tools to create a path</li>
+            <li>Watch the physics simulation in action</li>
+            <li>Try to complete each level with the fewest moves possible</li>
+          </ul>
+          <p>Good luck and have fun exploring the machine!</p>
+        `
       });
     }
-  });
-  Events.on(engine,'collisionEnd', e=>{
-    e.pairs.forEach(p=>{
-      const a=p.bodyA,b=p.bodyB;
-      if((a===ball && b===goalSensor) || (b===ball && a===goalSensor)){
-        // left sensor region; timer will naturally reset via logic above
-      }
-    });
-  });
-
-  // Mouse (for hit testing coordinates)
-  const mouse = Mouse.create(canvas);
-  mouse.pixelRatio = window.devicePixelRatio||1;
-
-  // Canvas events (custom drag/select)
-  canvas.addEventListener('pointerdown', onPointerDown);
-  window.addEventListener('pointermove', onPointerMove);
-  window.addEventListener('pointerup', onPointerUp);
-  window.addEventListener('keydown', onKeyRotate);
-
-  // Toolbox
-  toolRamp.addEventListener('pointerdown', startPlacingFromTool);
-
-  // Start loop & timer
-  levelStartTime = performance.now();
-  updateTimer(true);
-  requestAnimationFrame(loop);
-}
-
-function updateTimer(reset=false){
-  if(reset && timerInterval) clearInterval(timerInterval);
-  timerInterval=setInterval(()=>{
-    const secs=(performance.now()-levelStartTime)/1000;
-    timeEl.textContent = secs.toFixed(1)+'s';
-  },100);
-}
-
-// ===== Toolbox: create ramp on drag start =====
-let placing = null;
-function startPlacingFromTool(ev){
-  if(rampCount<=0 || !editing) return;
-  const pos = screenToWorld(ev.clientX, ev.clientY);
-  placing = Bodies.rectangle(pos.x, pos.y, 180, 16, {
-    isStatic:true, angle: toRad(-20), friction:.5, label:'piece_ramp', render:{visible:false}
-  });
-  World.add(world, placing);
-  toolRamp.style.opacity=.45;
-  ev.preventDefault();
-}
-window.addEventListener('pointermove', (ev)=>{
-  if(placing){
-    const pos = screenToWorld(ev.clientX, ev.clientY);
-    Body.setPosition(placing, pos);
-  }
-});
-window.addEventListener('pointerup', (ev)=>{
-  if (placing){
-    const r = canvas.getBoundingClientRect();
-    if (ev.clientX>=r.left && ev.clientX<=r.right && ev.clientY>=r.top && ev.clientY<=r.bottom){
-      ramps.push(placing);
-      selected = placing;
-      placing = null;
-      rampCount--; toolRampCountEl.textContent = 'x'+rampCount;
-      if (rampCount<=0){ toolRamp.style.opacity=.5; toolRamp.style.pointerEvents='none'; }
-    } else {
-      Matter.World.remove(world, placing);
-      placing=null; toolRamp.style.opacity=1;
+    
+    function openAuthors() {
+      openModal({
+        title: 'Authors',
+        bodyHTML: `
+          <p><strong>Created by:</strong> Lina Lopes</p>
+          <p><strong>GitHub:</strong> <a href="https://github.com/linalopes" target="_blank">@linalopes</a></p>
+          <p><strong>Project Repository:</strong> <a href="https://github.com/linalopes/maquina-gepeto" target="_blank">maquina-gepeto</a></p>
+          <br>
+          <p>This project combines physics simulation with creative visual design, inspired by the aesthetic of hand-drawn collages and educational toys.</p>
+          <p>Built with vanilla HTML, CSS, and JavaScript, featuring the Matter.js physics engine for realistic simulations.</p>
+        `
+      });
     }
-  }
-});
-
-
-// ===== Selection & drag inside canvas =====
-function onPointerDown(ev){
-  if(!editing) return;
-  const p = screenToWorld(ev.clientX, ev.clientY);
-  // Hit test ramps (check nearest first by simple reverse order)
-  const hits = Query.point(ramps, p);
-  if(hits.length){
-    // choose top-most by last in ramps (simple heuristic)
-    let picked = hits[hits.length-1];
-    selected = picked;
-    // start drag
-    isDragging = true;
-    dragOffset.x = p.x - selected.position.x;
-    dragOffset.y = p.y - selected.position.y;
-    canvas.style.cursor='grabbing';
-  }else{
-    selected = null;
-  }
-}
-function onPointerMove(ev){
-  if(!editing) return;
-  if(isDragging && selected){
-    const p = screenToWorld(ev.clientX, ev.clientY);
-    Body.setPosition(selected, { x: p.x - dragOffset.x, y: p.y - dragOffset.y });
-  }
-}
-function onPointerUp(){
-  if(!editing) return;
-  isDragging=false; canvas.style.cursor='default';
-}
-
-// ===== Rotation (Q/E) only for selected ramp in editing =====
-function onKeyRotate(e){
-  if(!editing || !selected) return;
-  const k = e.key.toLowerCase();
-  if(k==='q'){ nudgeRotation(selected,-5); }
-  else if(k==='e'){ nudgeRotation(selected, +5); }
-}
-function nudgeRotation(body, deltaDeg){
-  const rad = toRad(toDeg(body.angle)+deltaDeg);
-  Body.setAngle(body, rad);
-}
-
-// ===== Controls =====
-btnPlay.addEventListener('click', ()=>{
-  if(editing){
-    editing=false; bannerWin.classList.remove('show');
-    tries++; triesEl.textContent=tries;
-  }
-});
-btnReset.addEventListener('click', ()=>{
-  // stop playing, reset ball/time; keep ramps
-  editing=true; bannerWin.classList.remove('show');
-  Body.setPosition(ball, {x:120,y:160});
-  Body.setVelocity(ball, {x:0,y:0});
-  Body.setAngularVelocity(ball, 0);
-  Body.setAngle(ball, 0);
-  levelStartTime=performance.now(); updateTimer(true);
-});
-btnMenu.addEventListener('click', ()=>alert('Menu (placeholder)'));
-
-// ===== Win =====
-function showWin(){
-  editing=true; // pause back to editing after win
-  bannerWin.classList.add('show');
-}
-
-// ===== Helpers =====
-function screenToWorld(cx, cy){
-  const r = canvas.getBoundingClientRect();
-  const scaleX = canvas.width  / r.width;
-  const scaleY = canvas.height / r.height;
-  return {
-    x: (cx - r.left) * scaleX,
-    y: (cy - r.top)  * scaleY
-  };
-}
-
-
-// ===== Render loop (custom drawing) =====
-function loop(){
-  if(!editing){ Matter.Engine.update(engine, 1000/60); }
-
-  ctx.clearRect(0,0,canvas.width,canvas.height);
-  drawGrid();
-
-  // ramps
-  ramps.forEach(b=>{
-    const isSel = (b===selected);
-    drawPlank(b.position.x, b.position.y, 180, 16, b.angle, '#f1d9b8', false, isSel);
-  });
-  if(placing){ drawPlank(placing.position.x, placing.position.y, 180, 16, placing.angle, 'rgba(241,217,184,.7)', true, false); }
-
-  // ball
-  drawBall(ball.position.x, ball.position.y, 20);
-
-  // bucket sprite
-  drawBucketSprite();
-
-  requestAnimationFrame(loop);
-}
-
-function drawGrid(){
-  const step=40;
-  ctx.save();
-  ctx.globalAlpha=.18;
-  ctx.beginPath();
-  for(let x=0;x<=canvas.width;x+=step){ ctx.moveTo(x,0); ctx.lineTo(x,canvas.height); }
-  for(let y=0;y<=canvas.height;y+=step){ ctx.moveTo(0,y); ctx.lineTo(canvas.width,y); }
-  ctx.strokeStyle='#a9cfcf'; ctx.lineWidth=1; ctx.stroke();
-  ctx.restore();
-}
-function drawPlank(x,y,w,h,ang,fill,ghost=false,selected=false){
-  ctx.save(); ctx.translate(x,y); ctx.rotate(ang);
-  ctx.fillStyle=fill; ctx.strokeStyle='#8a5a3b'; ctx.lineWidth=2;
-  roundRect(ctx,-w/2,-h/2,w,h,6); ctx.fill(); ctx.stroke();
-  // hatching
-  ctx.globalAlpha=.25; ctx.beginPath();
-  for(let i=-w/2+6;i<w/2-6;i+=10){ ctx.moveTo(i,-h/2+3); ctx.lineTo(i+8,h/2-3); }
-  ctx.strokeStyle='#8a5a3b'; ctx.lineWidth=1; ctx.stroke();
-  ctx.globalAlpha=1;
-
-  if(ghost){
-    ctx.setLineDash([6,6]); ctx.strokeStyle='#20b2aa'; ctx.lineWidth=2;
-    ctx.strokeRect(-w/2,-h/2,w,h); ctx.setLineDash([]);
-  }
-  if(selected){
-    ctx.setLineDash([8,5]); ctx.strokeStyle='#f3852e'; ctx.lineWidth=3;
-    ctx.strokeRect(-w/2-3,-h/2-3,w+6,h+6); ctx.setLineDash([]);
-  }
-  ctx.restore();
-}
-function roundRect(ctx,x,y,w,h,r){
-  ctx.beginPath();
-  ctx.moveTo(x+r,y);
-  ctx.arcTo(x+w,y,x+w,y+h,r);
-  ctx.arcTo(x+w,y+h,x,y+h,r);
-  ctx.arcTo(x,y+h,x,y,r);
-  ctx.arcTo(x,y,x+w,y,r);
-  ctx.closePath();
-}
-function drawBall(x,y,r){
-  ctx.save(); ctx.translate(x,y);
-  ctx.beginPath(); ctx.arc(0,0,r,0,Math.PI*2);
-  ctx.fillStyle='#f3852e'; ctx.fill();
-  ctx.lineWidth=3; ctx.strokeStyle='#d26e1f'; ctx.stroke();
-  ctx.globalAlpha=.25;
-  for(let i=0;i<14;i++){ ctx.beginPath();
-    ctx.arc(0,0,r-2-i*0.8, Math.random()*Math.PI*2, Math.random()*Math.PI*2);
-    ctx.strokeStyle='#ffffff'; ctx.lineWidth=.7; ctx.stroke();
-  }
-  ctx.restore();
-}
-function drawBucketSprite(){
-  const w = 300*BUCKET_SCALE, h = 300*BUCKET_SCALE;
-  ctx.drawImage(imgBucket, BUCKET_ANCHOR.x, BUCKET_ANCHOR.y, w, h);
-}
-
-// Boot
-setup();
-</script>
+    
+    function openBook() {
+      openModal({
+        title: 'Book',
+        bodyHTML: `
+          <p><strong>The Machine's Gepeto</strong> is a collection of physics puzzles inspired by the classic tale of Pinocchio and the concept of bringing inanimate objects to life.</p>
+          <p>Each level presents a new challenge where you must use your creativity and understanding of physics to guide objects to their intended destinations.</p>
+          <br>
+          <p><strong>Level Progression:</strong></p>
+          <ul>
+            <li><strong>Level 1-2:</strong> Basic mechanics and tool introduction</li>
+            <li><strong>Level 3-4:</strong> Intermediate puzzles with multiple elements</li>
+            <li><strong>Level 5-6:</strong> Advanced challenges requiring creative solutions</li>
+          </ul>
+          <p>More levels and features coming soon!</p>
+        `
+      });
+    }
+    
+    // Initialize the app
+    document.addEventListener('DOMContentLoaded', function() {
+      // Generate level buttons
+      const levelsGrid = document.getElementById('levelsGrid');
+      for (let i = 1; i <= 6; i++) {
+        const button = document.createElement('button');
+        button.className = 'level-button';
+        button.textContent = i;
+        button.setAttribute('aria-label', `Open Level ${i}`);
+        button.addEventListener('click', () => openLevel(i));
+        levelsGrid.appendChild(button);
+      }
+      
+      // Sidebar button event listeners
+      document.getElementById('tutorialBtn').addEventListener('click', openTutorial);
+      document.getElementById('authorsBtn').addEventListener('click', openAuthors);
+      document.getElementById('bookBtn').addEventListener('click', openBook);
+      
+      // Modal event listeners
+      document.getElementById('modalClose').addEventListener('click', closeModal);
+      document.getElementById('modalBackdrop').addEventListener('click', function(e) {
+        if (e.target === this) {
+          closeModal();
+        }
+      });
+      
+      // Keyboard accessibility
+      document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+          closeModal();
+        }
+      });
+    });
+  </script>
 </body>
 </html>
