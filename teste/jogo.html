@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="pt-br">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Infância do GPT — Nível 0 (Tutorial) • Planck.js</title>
+
+  <!-- Google Fonts: Lora -->
+  <link href="https://fonts.googleapis.com/css2?family=Lora:wght@400;600;700&display=swap" rel="stylesheet">
+
+  <!-- Estilos -->
+  <link rel="stylesheet" href="style.css">
+
+  <!-- Planck.js (Box2D) -->
+  <script src="https://cdn.jsdelivr.net/npm/planck-js@latest/dist/planck.min.js"></script>
+
+  <!-- Header dinâmico -->
+  <script defer src="header.js"></script>
+
+  <!-- Monta a toolbox vazia -->
+  <script defer src="toolbox.js"></script>
+  <!-- Adiciona os itens da toolbox (4 rampas) -->
+  <script defer src="tutorial.js"></script>
+  <!-- Mundo/Canvas/Planck -->
+  <script defer src="playground.js"></script>
+</head>
+<body>
+  <!-- header é injetado por header.js -->
+
+  <div class="wrap">
+    <!-- A toolbox será criada por JS dentro deste mount -->
+    <aside id="toolboxMount" class="card"></aside>
+
+    <section class="card board">
+      <canvas id="game" width="960" height="600"></canvas>
+      <div class="hud">
+        <div id="bannerWin" class="banner">🎉 Conseguiu! A bola está no balde.</div>
+      </div>
+    </section>
+
+    <aside class="card">
+      <h3 style="margin:.1rem 0 .4rem">Objetivo</h3>
+      <p class="muted">
+        Faça a <span class="badge">Bola</span> cair dentro do <span class="badge">Balde</span> usando as
+        <span class="badge">Rampas</span>.
+      </p>
+      <ol class="muted" style="margin:.4rem 0 .6rem; padding-left:1.1rem;">
+        <li>Arraste rampas da <b>Toolbox</b> (você tem 4).</li>
+        <li>Clique na rampa para <b>selecionar</b>; gire com <b>Q/E</b>; arraste para ajustar.</li>
+        <li>Clique <b>Play</b> para testar. Use <b>Reset</b> para tentar de novo (mantém rampas).</li>
+      </ol>
+      <hr style="border:none;border-top:1px dashed #b98a6b; margin:.5rem 0;">
+      <div class="muted">Tentativas: <span id="tries">0</span> • Tempo: <span id="time">0.0s</span></div>
+    </aside>
+  </div>
+
+  <footer>Colagem/giz: laranja, turquoise, marrom • Tipografia: Lora • Física: <b>Planck.js</b> (Canvas 2D)</footer>
+</body>
+</html>
