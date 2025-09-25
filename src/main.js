@@ -115,7 +115,7 @@
           <p>Welcome to The Machine's Gepeto! This is a physics-based puzzle game where you'll help guide objects through various challenges.</p>
           <p>Use the machine buttons to select different puzzles. Each machine presents a unique challenge that requires creative thinking and understanding of physics principles.</p>
           <p>Good luck and have fun exploring the machine!</p>
-          <a href="teste/jogo.html">Tutorial</a>
+          <a href="jogo.html">Tutorial</a>
         `
       });
     }
@@ -127,6 +127,7 @@
           <p>Created with passion and creativity by a team of developers who love physics and interactive experiences.</p>
           <p>This project combines the beauty of hand-drawn aesthetics with the precision of modern web technologies.</p>
           <p>Special thanks to the open-source community for the amazing tools and libraries that made this possible.</p>
+          <a href="teste/jogo.html">Tutorial</a>
         `
       });
     }

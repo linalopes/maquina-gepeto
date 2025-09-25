@@ -7,41 +7,31 @@
 
   <!-- Google Fonts: Lora -->
   <link href="https://fonts.googleapis.com/css2?family=Lora:wght@400;600;700&display=swap" rel="stylesheet">
+
+  <!-- Estilos -->
+<link rel="stylesheet" href="styles.css">
+
+
+
   <!-- Planck.js (Box2D) -->
   <script src="https://cdn.jsdelivr.net/npm/planck-js@latest/dist/planck.min.js"></script>
 
-  <link rel="stylesheet" href="styles.css">
+  <!-- Header dinâmico -->
+  <script defer src="src/header.js"></script>
 
+  <!-- Monta a toolbox vazia -->
+  <script defer src="src/toolbox.js"></script>
+  <!-- Adiciona os itens da toolbox (4 rampas) -->
+  <script defer src="src/tutorial_lib.js"></script>
+  <!-- Mundo/Canvas/Planck -->
+  <script defer src="src/playground.js"></script>
 </head>
 <body>
-  <header>
-    <div class="title">Infância do GPT — <span style="color:var(--orange)">Nível 0</span> (Tutorial) • Planck.js</div>
-    <div class="controls">
-      <button id="btnPlay" class="btn play"><img src="assets/png/play_icon.png" alt="">Play</button>
-      <button id="btnReset" class="btn reset">Reset</button>
-      <button id="btnMenu" class="btn"><img src="assets/png/diary_icon.png" alt="">Menu</button>
-    </div>
-  </header>
+  <!-- header é injetado por header.js -->
 
   <div class="wrap">
-    <aside class="card">
-      <h2 style="margin:.1rem 0 .5rem">Caixa de Ferramentas</h2>
-      <div id="toolRamp" class="tool" title="Arraste para o campo">
-        <div style="display:flex;align-items:center;gap:.55rem;">
-          <svg width="46" height="28" viewBox="0 0 46 28" aria-hidden="true">
-            <path d="M2 26 L42 26 L2 6 Z" fill="#e7c8a8" stroke="#8a5a3b" stroke-width="2"/>
-            <path d="M4 25 L38 25 L4 8 Z" fill="none" stroke="#8a5a3b" stroke-width="1" stroke-dasharray="4 3"/>
-          </svg>
-          <b>Rampa</b>
-        </div>
-        <span id="toolRampCount" class="chip">x4</span>
-      </div>
-      <p class="muted" style="margin:.2rem 0 0">
-        • Arraste a <b>Rampa</b> da Toolbox para o campo.<br>
-        • Clique para <b>selecionar</b>; gire com <kbd>Q</kbd>/<kbd>E</kbd>; arraste para reposicionar.<br>
-        • <b>Play</b> inicia a simulação; <b>Reset</b> recomeça (mantém rampas).
-      </p>
-    </aside>
+    <!-- A toolbox será criada por JS dentro deste mount -->
+    <aside id="toolboxMount" class="card"></aside>
 
     <section class="card board">
       <canvas id="game" width="960" height="600"></canvas>
@@ -64,11 +54,8 @@
       <hr style="border:none;border-top:1px dashed #b98a6b; margin:.5rem 0;">
       <div class="muted">Tentativas: <span id="tries">0</span> • Tempo: <span id="time">0.0s</span></div>
     </aside>
-
   </div>
 
   <footer>Colagem/giz: laranja, turquoise, marrom • Tipografia: Lora • Física: <b>Planck.js</b> (Canvas 2D)</footer>
-
-<script src="src/tutorial.js"></script>
 </body>
 </html>
