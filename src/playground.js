@@ -53,6 +53,9 @@ document.addEventListener('DOMContentLoaded', () => {
   let placing   = null; // { type, ... }
   let selecting = null; // { kind, item, pointerId, grabDX, grabDY }
 
+  // Snapshot de gangorras (para restaurar no Reset)
+  let seesawSnapshot = null;
+
   const BUCKET_ANCHOR = { x: 760, y: 420 };
   const BUCKET_SCALE  = 0.75;
 
@@ -356,6 +359,33 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
+  // ===== Snapshot de gangorras =====
+  function snapshotSeesaws() {
+    // guarda pose de cada gangorra em METROS e RADIANOS
+    seesawSnapshot = seesaws.map(s => {
+      const pp = s.pivot.getPosition();
+      const bp = s.plank.getPosition();
+      const ang = s.plank.getAngle();
+      return {
+        pivot: { x: pp.x, y: pp.y },
+        plank: { x: bp.x, y: bp.y, angle: ang }
+      };
+    });
+  }
+
+  function restoreSeesaws() {
+    if (!seesawSnapshot) return;
+    const n = Math.min(seesaws.length, seesawSnapshot.length);
+    for (let i = 0; i < n; i++) {
+      const s    = seesaws[i];
+      const snap = seesawSnapshot[i];
+      s.pivot.setTransform(pl.Vec2(snap.pivot.x, snap.pivot.y), 0);
+      s.plank.setTransform(pl.Vec2(snap.plank.x, snap.plank.y), snap.plank.angle);
+      s.plank.setLinearVelocity(pl.Vec2(0, 0));
+      s.plank.setAngularVelocity(0);
+    }
+  }
+
   // ===== Boost =====
   function handleBoostContactChange(contact, isBegin){
     const fa = contact.getFixtureA();
@@ -385,6 +415,10 @@ document.addEventListener('DOMContentLoaded', () => {
   function handlePlay() {
     console.log('[playground] Play clicado');
     if (!editing) return;
+
+    // salva pose atual das gangorras ajustadas na edição
+    snapshotSeesaws();
+
     editing = false;
     bannerWin?.classList.remove('show');
     selecting = null;
@@ -397,11 +431,17 @@ document.addEventListener('DOMContentLoaded', () => {
     editing = true;
     bannerWin?.classList.remove('show');
     selecting = null;
+
+    // restaura pose das gangorras salva antes do Play
+    restoreSeesaws();
+
+    // bola volta à posição inicial
     if (ball) {
       ball.setTransform(pl.Vec2(px2m(25), px2m(25)), 0);
       ball.setLinearVelocity(pl.Vec2(0, 0));
       ball.setAngularVelocity(0);
     }
+
     activeBoosts.clear?.();
     levelStartTime = performance.now();
     updateTimer(true);
@@ -503,7 +543,7 @@ document.addEventListener('DOMContentLoaded', () => {
     ctx.globalAlpha=.18;
     ctx.beginPath();
     for(let x=0;x<=canvas.clientWidth;x+=step){ ctx.moveTo(x,0); ctx.lineTo(x,canvas.clientHeight); }
-    for(let y=0;y<=canvas.clientHeight;y+=step){ ctx.moveTo(0,y); ctx.lineTo(canvas.clientWidth,y); }
+    for(let y=0;y<=canvas.clientHeight;y+=step){ ctx.moveTo(0,y); ctx.lineTo(x=canvas.clientWidth,y); }
     ctx.strokeStyle='#a9cfcf'; ctx.lineWidth=1; ctx.stroke();
     ctx.restore();
   }
