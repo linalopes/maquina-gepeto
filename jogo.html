@@ -25,12 +25,20 @@
   <!-- Header dinâmico -->
   <script defer src="src/header.js"></script>
 
-  <!-- Monta a toolbox vazia -->
-  <script defer src="src/toolbox.js"></script>
-  <!-- Adiciona os itens da toolbox (4 rampas) -->
-  <script defer src="src/lib_tutorial.js"></script>
-  <!-- Mundo/Canvas/Planck -->
-  <script defer src="src/playground.js"></script>
+ 
+<!-- toolbox “card” (seu script que cria o <aside id="toolboxMount">) -->
+<script src="src/toolbox.js" defer></script>
+
+<!-- ✅ carregue SOMENTE a biblioteca do tutorial
+<script src="src/lib_tutorial.js" defer></script> -->
+
+<!-- lib loader -->
+ <script src="src/lib_loader.js" defer></script>
+
+
+
+<!-- playground por último -->
+<script src="src/playground.js" defer></script>
 </head>
 <body>
   <!-- header é injetado por header.js -->

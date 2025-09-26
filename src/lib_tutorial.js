@@ -1,16 +1,13 @@
 // src/lib_tutorial.js
 (function () {
-  // --- Singleton guard: evita registrar tudo 2x se o script for incluído novamente
-  if (window.__GEPETO_LIB_TUTORIAL_INIT__) {
-    console.warn('[lib_tutorial] já inicializado — ignorando segunda carga.');
-    return;
-  }
+  // Evita rodar duas vezes se incluído por engano
+  if (window.__GEPETO_LIB_TUTORIAL_INIT__) return;
   window.__GEPETO_LIB_TUTORIAL_INIT__ = true;
 
   const mount = document.getElementById('toolboxMount');
   if (!mount) return;
 
-  // contêiner de itens
+  // contêiner dos itens
   let itemsContainer = document.getElementById('toolboxItems');
   if (!itemsContainer) {
     itemsContainer = document.createElement('div');
@@ -18,15 +15,15 @@
     itemsContainer.className = 'toolbox-items';
     mount.appendChild(itemsContainer);
   }
+  // limpa só a área de itens (mantém o “card” do toolbox.js)
   itemsContainer.innerHTML = '';
 
-  // estado dos itens da toolbox
+  // Estado: Rampa + Gangorra
   const state = {
     ramp:   { label: 'Rampa',    count: 4, id: 'tool-ramp'   },
     seesaw: { label: 'Gangorra', count: 2, id: 'tool-seesaw' },
   };
 
-  // svgs inline
   const rampSVG = `
     <svg width="46" height="28" viewBox="0 0 46 28" aria-hidden="true">
       <path d="M2 26 L42 26 L2 6 Z" fill="#e7c8a8" stroke="#8a5a3b" stroke-width="2"/>
@@ -60,73 +57,42 @@
     el.appendChild(left);
     el.appendChild(chip);
 
-    // Handler ÚNICO (evita click + pointerdown em duplicidade)
+    // único handler (evita click+pointerdown duplicado)
     el.addEventListener('pointerdown', (ev) => {
       ev.preventDefault();
       ev.stopPropagation();
       const item = state[type];
       if (!item || item.count <= 0) return;
 
-      // Inicia o ghost já na posição do ponteiro
+      // dispara o evento que o playground entende
       document.dispatchEvent(new CustomEvent('toolbox:start', {
-        detail: { type, clientX: ev.clientX, clientY: ev.clientY }
+        detail: { type, clientX: ev.clientX, clientY: ev.clientY } // type: 'ramp' | 'seesaw'
       }));
-
-      // Atualiza imediatamente a posição do ghost
+      // move o ghost imediatamente
       document.dispatchEvent(new PointerEvent('pointermove', ev));
     });
 
     return el;
   }
 
-  itemsContainer.appendChild(
-    createTool('ramp', state.ramp.label, state.ramp.count, state.ramp.id, rampSVG)
-  );
-  itemsContainer.appendChild(
-    createTool('seesaw', state.seesaw.label, state.seesaw.count, state.seesaw.id, seesawSVG)
-  );
-
-  // --- DEDUPE por tipo: ignora consumes duplicados que cheguem "colados"
-  const lastConsumeAt = { ramp: 0, seesaw: 0 };
-  const lastRefundAt  = { ramp: 0, seesaw: 0 };
-  const DEDUPE_MS = 80;
-
-  function safeDecrement(type){
-    const now = performance.now();
-    if (now - lastConsumeAt[type] < DEDUPE_MS) {
-      // duplicata provável (duas inscrições de listener ou evento duplicado)
-      return;
-    }
-    lastConsumeAt[type] = now;
-
-    state[type].count = Math.max(0, state[type].count - 1);
-    const chip = document.getElementById('chip-' + type);
-    if (chip) chip.textContent = 'x' + state[type].count;
-  }
-
-  function safeIncrement(type){
-    const now = performance.now();
-    if (now - lastRefundAt[type] < DEDUPE_MS) {
-      return;
-    }
-    lastRefundAt[type] = now;
-
-    state[type].count++;
-    const chip = document.getElementById('chip-' + type);
-    if (chip) chip.textContent = 'x' + state[type].count;
-  }
+  // adiciona os dois itens
+  itemsContainer.appendChild(createTool('ramp',   state.ramp.label,   state.ramp.count,   state.ramp.id,   rampSVG));
+  itemsContainer.appendChild(createTool('seesaw', state.seesaw.label, state.seesaw.count, state.seesaw.id, seesawSVG));
 
   // contadores sincronizados com o playground
-  // OBS: com o guard acima, esses listeners serão registrados apenas uma vez.
   document.addEventListener('toolbox:consume', (e) => {
     const { type } = e.detail || {};
     if (!state[type]) return;
-    safeDecrement(type);
+    state[type].count = Math.max(0, state[type].count - 1);
+    const chip = document.getElementById('chip-' + type);
+    if (chip) chip.textContent = 'x' + state[type].count;
   });
 
   document.addEventListener('toolbox:refund', (e) => {
     const { type } = e.detail || {};
     if (!state[type]) return;
-    safeIncrement(type);
+    state[type].count++;
+    const chip = document.getElementById('chip-' + type);
+    if (chip) chip.textContent = 'x' + state[type].count;
   });
 })();
