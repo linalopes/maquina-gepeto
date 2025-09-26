@@ -11,6 +11,12 @@
   <!-- Estilos -->
 <link rel="stylesheet" href="styles.css">
 
+<style>
+  /* Libera eventos de ponteiro no canvas */
+  #game { touch-action: none; }
+  /* Evita overlay bloquear cliques (se houver) */
+  .overlay, .modal-backdrop { pointer-events: none; }
+</style>
 
 
   <!-- Planck.js (Box2D) -->
@@ -57,5 +63,9 @@
   </div>
 
   <footer>Colagem/giz: laranja, turquoise, marrom • Tipografia: Lora • Física: <b>Planck.js</b> (Canvas 2D)</footer>
+
+  <!-- <canvas id="game" width="960" height="640" style="width:960px; height:640px; display:block;"></canvas> -->
+
+
 </body>
 </html>
