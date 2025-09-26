@@ -8,6 +8,7 @@
   const LIBS = {
     tutorial: 'src/lib_tutorial.js', // rampa + gangorra
     level1:   'src/lib_level1.js',   // só rampa
+    level2:   'src/lib_level2.js',   // só rampa
   };
 
   // Lê ?lib= da querystring; se não tiver, tenta no hash (#lib=)
