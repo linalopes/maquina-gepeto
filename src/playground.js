@@ -1,94 +1,97 @@
-/* ========= Planck.js playground =========
-   - Toolbox: Rampa (4 unidades definidas em tutorial.js)
-   - Colocação com “fantasma” só dentro do canvas (bug corrigido)
-   - Seleção/arrasto/rotação Q/E
-   - Play/Reset; sensor no balde para vitória
-========================================= */
-
+/* global planck */
 const pl = planck;
 const scale = 40; // 1m = 40px
 
 const canvas = document.getElementById('game');
 const ctx = canvas.getContext('2d');
 
-// UI
-const btnPlay = document.getElementById('btnPlay');
-const btnReset = document.getElementById('btnReset');
-const btnMenu = document.getElementById('btnMenu');
+// UI (mantido)
+const btnPlay   = document.getElementById('btnPlay');
+const btnReset  = document.getElementById('btnReset');
 const bannerWin = document.getElementById('bannerWin');
-const triesEl = document.querySelector('#tries');
-const timeEl  = document.querySelector('#time');
+const triesEl   = document.querySelector('#tries');
+const timeEl    = document.querySelector('#time');
 
-// Toolbox elements (for ramp)
-const toolRamp = document.getElementById('toolRamp');
-const toolRampCountEl = document.getElementById('toolRampCount');
+// Assets (mantido)
+const imgBucket = new Image(); imgBucket.src = 'bucket.png';
 
-// Assets
-const imgBucket = new Image(); imgBucket.src = 'assets/png/bucket.png';
+// ===== Canvas: retina-safe + sync com CSS =====
+let dpr = Math.max(1, window.devicePixelRatio || 1);
+function fitCanvas() {
+  const r = canvas.getBoundingClientRect();
+  dpr = Math.max(1, window.devicePixelRatio || 1);
+  const w = Math.max(1, Math.round(r.width  * dpr));
+  const h = Math.max(1, Math.round(r.height * dpr));
+  if (canvas.width !== w || canvas.height !== h) {
+    canvas.width = w;
+    canvas.height = h;
+  }
+  // Ajusta a escala do contexto para o DPR
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+}
+fitCanvas();
+window.addEventListener('resize', fitCanvas);
 
-// Estado
+// Estado geral
 let world;
-let editing = true;
+let editing = true; // em edição = mundo congelado (sem step), mas tudo renderiza
 let tries = 0, levelStartTime = 0, timerInterval = null;
 
-// Bodies
+// Coleções
 let ball;
-let ramps = [];       // { body, w, h }
+let ramps = [];      // { body, w, h }
+let seesaws = [];    // { pivot, plank, joint, w, h }
 let goalSensor;
 let bucketBodies = [];
 
-// Toolbox count
-let rampCount = (typeof window.initialRampCount === 'number') ? window.initialRampCount : 0;
-
-// Seleção/drag
-let selected = null;
-let isDragging = false;
-let dragOffset = {x:0, y:0}; // em metros
+// Colocação (ghost)
+let placing = null;  // { type: 'ramp'|'seesaw', body|pivot/plank, w, h, pointerId? }
 
 // Helpers
 const toRad = d => d*Math.PI/180;
 const px2m = (px) => px / scale;
 const m2px = (m)  => m * scale;
 
-// “fantasma” control
-let placing = null;           // { body, w, h }
-let pendingPlace = false;     // esperando mouse entrar no canvas
-let mouseOverCanvas = false;  // hover state
-
-// Balde sprite
 const BUCKET_ANCHOR = { x: 760, y: 420 };
 const BUCKET_SCALE  = 0.75;
 
-// Setup
+// ===== Setup =====
 function setup(){
   world = new pl.World({ gravity: pl.Vec2(0, 10) });
 
-  // chão
-  const floor = world.createBody();
-  floor.createFixture(pl.Box(px2m(960/2), px2m(60/2)), {density:0, friction:0.5});
-  floor.setPosition(pl.Vec2(px2m(480), px2m(610)));
+  // Chão (mantido)
+  {
+    const floor = world.createBody();
+    floor.createFixture(pl.Box(px2m(960/2), px2m(60/2)), {density:0, friction:0.5});
+    floor.setPosition(pl.Vec2(px2m(480), px2m(610)));
+  }
 
-  // bola
-  ball = world.createDynamicBody(pl.Vec2(px2m(120), px2m(160)));
-  ball.createFixture(pl.Circle(px2m(20)), { density: 1, friction: 0.05, restitution: 0.2 });
-  ball.setLinearDamping(0.01);
+  // Bola (mantido)
+  {
+    ball = world.createDynamicBody(pl.Vec2(px2m(120), px2m(160)));
+    ball.createFixture(pl.Circle(px2m(20)), { density: 1, friction: 0.05, restitution: 0.2 });
+    ball.setLinearDamping(0.01);
+  }
 
-  // balde + sensor
-  const bx=800, by=540, wallH=90, wallT=12, innerW=90;
-  const left  = world.createBody(); left.setPosition(pl.Vec2(px2m(bx - innerW/2), px2m(by - wallH/2)));
-  const right = world.createBody(); right.setPosition(pl.Vec2(px2m(bx + innerW/2), px2m(by - wallH/2)));
-  const base  = world.createBody(); base.setPosition(pl.Vec2(px2m(bx), px2m(by)));
-  left.createFixture(pl.Box(px2m(wallT/2), px2m(wallH/2)));
-  right.createFixture(pl.Box(px2m(wallT/2), px2m(wallH/2)));
-  base.createFixture(pl.Box(px2m(innerW/2), px2m(wallT/2)));
-  bucketBodies = [left, right, base];
+  // Balde + sensor (mantido)
+  {
+    const bx=800, by=540, wallH=90, wallT=12, innerW=90;
 
-  goalSensor = world.createBody();
-  goalSensor.setPosition(pl.Vec2(px2m(bx), px2m(by-10)));
-  const f = goalSensor.createFixture(pl.Box(px2m((innerW-12)/2), px2m(10)), { isSensor: true });
-  goalSensor._sensorFixture = f;
+    const left  = world.createBody(); left.setPosition(pl.Vec2(px2m(bx - innerW/2), px2m(by - wallH/2)));
+    const right = world.createBody(); right.setPosition(pl.Vec2(px2m(bx + innerW/2), px2m(by - wallH/2)));
+    const base  = world.createBody(); base.setPosition(pl.Vec2(px2m(bx), px2m(by)));
+    left.createFixture(pl.Box(px2m(wallT/2), px2m(wallH/2)));
+    right.createFixture(pl.Box(px2m(wallT/2), px2m(wallH/2)));
+    base.createFixture(pl.Box(px2m(innerW/2), px2m(wallT/2)));
+    bucketBodies = [left, right, base];
 
-  // vitória: bola parada dentro do sensor por 1s
+    goalSensor = world.createBody();
+    goalSensor.setPosition(pl.Vec2(px2m(bx), px2m(by-10)));
+    const f = goalSensor.createFixture(pl.Box(px2m((innerW-12)/2), px2m(10)), { isSensor: true });
+    goalSensor._sensorFixture = f;
+  }
+
+  // Vitória quando a bola fica parada ~1s dentro do sensor
   let insideFlag=false, insideTime=0;
   world.on('begin-contact', (c)=>{
     const a=c.getFixtureA(), b=c.getFixtureB();
@@ -114,31 +117,24 @@ function setup(){
     }
   }, 120);
 
-  // eventos canvas
-  canvas.addEventListener('pointerenter', () => { mouseOverCanvas = true; });
-  canvas.addEventListener('pointerleave', () => { mouseOverCanvas = false; });
-
+  // Input
   canvas.addEventListener('pointerdown', onPointerDown);
-  window.addEventListener('pointermove', onPointerMove);
-  window.addEventListener('pointerup', onPointerUp);
+  canvas.addEventListener('pointermove', onPointerMove);
+  canvas.addEventListener('pointerup',   onPointerUp);
   window.addEventListener('keydown', onKeyRotate);
 
-  // Toolbox: clicar na rampa não cria corpo; apenas marca pendente
-  if(toolRamp){
-    toolRamp.addEventListener('pointerdown', (ev)=>{
-      if(rampCount<=0 || !editing) return;
-      pendingPlace = true;
-      placing = null;
-      toolRamp.style.opacity = .45;
-      ev.preventDefault();
-    });
-  }
+  // Toolbox → iniciar posicionamento
+  document.addEventListener('toolbox:start', (e) => {
+    if(!editing) return;
+    const { type } = e.detail || {};
+    if (type === 'ramp')   startPlacingRamp();
+    if (type === 'seesaw') startPlacingSeesaw();
+  });
 
   // Timer
   levelStartTime = performance.now();
   updateTimer(true);
 
-  // Loop
   requestAnimationFrame(loop);
 }
 
@@ -150,161 +146,215 @@ function updateTimer(reset=false){
   },100);
 }
 
-// ===== Mouse move: cria fantasma somente dentro do canvas =====
-function onPointerMove(ev){
-  if(!editing) return;
-
-  // cria uma única vez quando o mouse entra no canvas
-  if(pendingPlace && mouseOverCanvas && !placing){
-    const p = screenToWorld(ev.clientX, ev.clientY);
-    const w = 180, h = 16;
-    const body = world.createBody(); // estático por padrão
-    body.setPosition(pl.Vec2(px2m(p.x), px2m(p.y)));
-    body.setAngle(toRad(-20));
-    body.createFixture(pl.Box(px2m(w/2), px2m(h/2)), { friction: 0.5 });
-    placing = { body, w, h };
-  }
-
-  // move o fantasma enquanto estiver sobre o canvas
-  if(placing && mouseOverCanvas){
-    const p = screenToWorld(ev.clientX, ev.clientY);
-    placing.body.setTransform(pl.Vec2(px2m(p.x), px2m(p.y)), placing.body.getAngle());
-  }
-
-  // drag de rampas já colocadas
-  if(isDragging && selected){
-    const p = screenToWorld(ev.clientX, ev.clientY);
-    const newPos = pl.Vec2(px2m(p.x) - dragOffset.x, px2m(p.y) - dragOffset.y);
-    selected.body.setTransform(newPos, selected.body.getAngle());
-  }
+// ===== Placing: Rampa =====
+function startPlacingRamp(){
+  if (placing) return; // evita dois ghosts
+  const w=180, h=16;
+  const body = world.createBody(); // static (ghost)
+  body.setPosition(pl.Vec2(px2m(canvas.clientWidth/2), px2m(canvas.clientHeight/2)));
+  body.setAngle(toRad(-20));
+  body.createFixture(pl.Box(px2m(w/2), px2m(h/2)), { friction: 0.5 });
+  placing = { type:'ramp', body, w, h };
 }
 
-// ===== Pointer up: confirma/cancela =====
-function onPointerUp(ev){
-  const r = canvas.getBoundingClientRect();
+// ===== Placing: Gangorra =====
+function startPlacingSeesaw(){
+  if (placing) return;
+  const w=200, h=16;
 
-  // Se estava pendente e ainda não criou o fantasma (soltou fora): cancela
-  if(pendingPlace && !placing){
-    pendingPlace = false;
-    if(toolRamp) toolRamp.style.opacity = 1;
-    return;
-  }
+  const x0 = px2m(canvas.clientWidth/2), y0 = px2m(canvas.clientHeight/2);
 
-  // Se existe fantasma
-  if (placing){
-    const inside = (ev.clientX>=r.left && ev.clientX<=r.right && ev.clientY>=r.top && ev.clientY<=r.bottom);
-    if (inside){
-      ramps.push(placing);
-      selected = placing;
-      placing = null;
-      pendingPlace = false;
-      rampCount--; if(toolRampCountEl) toolRampCountEl.textContent = 'x'+rampCount;
-      if (rampCount<=0 && toolRamp){ toolRamp.style.opacity=.5; toolRamp.style.pointerEvents='none'; }
-    } else {
-      world.destroyBody(placing.body);
-      placing=null; pendingPlace=false; if(toolRamp) toolRamp.style.opacity=1;
-    }
-  }
+  // Pivô estático
+  const pivot = world.createBody();
+  pivot.setPosition(pl.Vec2(x0, y0));
 
-  // fim do drag
-  isDragging=false; canvas.style.cursor='default';
+  // Tábua dinâmica (ghost não simula porque estamos em editing=true)
+  const plank = world.createDynamicBody(pl.Vec2(x0, y0));
+  plank.createFixture(pl.Box(px2m(w/2), px2m(h/2)), { density:1, friction:0.3, restitution:0.2 });
+
+  // Junta revoluta
+  const joint = world.createJoint(pl.RevoluteJoint({}, pivot, plank, pl.Vec2(x0, y0)));
+
+  placing = { type:'seesaw', pivot, plank, joint, w, h };
 }
 
-// ===== Seleção & drag =====
+// ===== Pointer =====
 function onPointerDown(ev){
-  if(!editing) return;
-  const p = screenToWorld(ev.clientX, ev.clientY);
-  const pWorld = pl.Vec2(px2m(p.x), px2m(p.y));
+  // Captura para garantir que os moves/up cheguem ao canvas
+  canvas.setPointerCapture?.(ev.pointerId);
+  if (placing) placing.pointerId = ev.pointerId;
+}
 
-  const hits = [];
-  for(let i=0;i<ramps.length;i++){
-    const b = ramps[i].body;
-    for(let f=b.getFixtureList(); f; f=f.getNext()){
-      if(f.testPoint(pWorld)){ hits.push(ramps[i]); break; }
-    }
-  }
-  if(hits.length){
-    const picked = hits[hits.length-1];
-    selected = picked;
-    isDragging = true;
-    const pos = picked.body.getPosition();
-    dragOffset.x = pWorld.x - pos.x;
-    dragOffset.y = pWorld.y - pos.y;
-    canvas.style.cursor='grabbing';
-  } else {
-    selected = null;
+function onPointerMove(ev){
+  if(!placing || !editing) return;
+  // Só move se é o pointer que iniciou (evita multi-touch bagunçar)
+  if (placing.pointerId && ev.pointerId !== placing.pointerId) return;
+
+  const p = screenToWorld(ev.clientX, ev.clientY);
+  if (placing.type === 'ramp') {
+    placing.body.setTransform(pl.Vec2(px2m(p.x), px2m(p.y)), placing.body.getAngle());
+  } else if (placing.type === 'seesaw') {
+    const pos = pl.Vec2(px2m(p.x), px2m(p.y));
+    placing.pivot.setTransform(pos, 0);
+    placing.plank.setTransform(pos, placing.plank.getAngle());
   }
 }
 
-// ===== Rotação (Q/E) =====
+function onPointerUp(ev){
+  if(!placing) return;
+  // Libera a captura
+  try { canvas.releasePointerCapture?.(ev.pointerId); } catch (_) {}
+
+  const r = canvas.getBoundingClientRect();
+  const inside = ev.clientX>=r.left && ev.clientX<=r.right && ev.clientY>=r.top && ev.clientY<=r.bottom;
+
+  if (inside) {
+    // confirma (consome da toolbox)
+    if (placing.type === 'ramp') {
+      ramps.push({ body: placing.body, w: placing.w, h: placing.h });
+      document.dispatchEvent(new CustomEvent('toolbox:consume', { detail:{ type:'ramp' } }));
+    } else if (placing.type === 'seesaw') {
+      seesaws.push({ pivot: placing.pivot, plank: placing.plank, joint: placing.joint, w: placing.w, h: placing.h });
+      document.dispatchEvent(new CustomEvent('toolbox:consume', { detail:{ type:'seesaw' } }));
+    }
+    placing = null;
+  } else {
+    // cancela (refunda na toolbox)
+    if (placing.type === 'ramp') {
+      world.destroyBody(placing.body);
+      document.dispatchEvent(new CustomEvent('toolbox:refund', { detail:{ type:'ramp' } }));
+    } else if (placing.type === 'seesaw') {
+      world.destroyJoint(placing.joint);
+      world.destroyBody(placing.plank);
+      world.destroyBody(placing.pivot);
+      document.dispatchEvent(new CustomEvent('toolbox:refund', { detail:{ type:'seesaw' } }));
+    }
+    placing = null;
+  }
+}
+
+// ===== Rotação do ghost da rampa =====
 function onKeyRotate(e){
-  if(!editing || !selected) return;
+  if(!editing || !placing) return;
+  if(placing.type !== 'ramp') return;
   const k = e.key.toLowerCase();
-  const a = selected.body.getAngle();
-  if(k==='q'){ selected.body.setTransform(selected.body.getPosition(), a + toRad(-5)); }
-  else if(k==='e'){ selected.body.setTransform(selected.body.getPosition(), a + toRad(+5)); }
+  const a = placing.body.getAngle();
+  if(k==='q'){ placing.body.setTransform(placing.body.getPosition(), a + toRad(-5)); }
+  else if(k==='e'){ placing.body.setTransform(placing.body.getPosition(), a + toRad(+5)); }
 }
 
 // ===== Controles =====
-btnPlay.addEventListener('click', ()=>{
+btnPlay?.addEventListener('click', ()=>{
   if(editing){
-    editing=false; bannerWin.classList.remove('show');
+    editing=false; bannerWin?.classList.remove('show');
     tries++; if(triesEl) triesEl.textContent=tries;
   }
 });
-btnReset.addEventListener('click', ()=>{
-  editing=true; bannerWin.classList.remove('show');
+btnReset?.addEventListener('click', ()=>{
+  editing=true; bannerWin?.classList.remove('show');
   ball.setTransform(pl.Vec2(px2m(120), px2m(160)), 0);
   ball.setLinearVelocity(pl.Vec2(0,0));
   ball.setAngularVelocity(0);
   levelStartTime=performance.now(); updateTimer(true);
 });
-btnMenu.addEventListener('click', ()=>alert('Menu (placeholder)'));
+
+// ===== Utils =====
+function screenToWorld(cx, cy){
+  // Converte coordenada de tela para coordenada de canvas *independente de DPR*
+  const r = canvas.getBoundingClientRect();
+  const xCSS = cx - r.left;
+  const yCSS = cy - r.top;
+  // Como setamos ctx.setTransform(dpr,0,0,dpr,0,0), trabalhamos em "unidades CSS" no desenho,
+  // então aqui devolvemos valores em CSS pixels (não em pixels físicos do canvas).
+  return { x: xCSS, y: yCSS };
+}
 
 function showWin(){
   editing=true;
-  bannerWin.classList.add('show');
+  bannerWin?.classList.add('show');
 }
 
-// ===== Helpers de desenho =====
-function screenToWorld(cx, cy){
-  const r = canvas.getBoundingClientRect();
-  const scaleX = canvas.width  / r.width;
-  const scaleY = canvas.height / r.height;
-  return {
-    x: (cx - r.left) * scaleX,
-    y: (cy - r.top)  * scaleY
-  };
+// ===== Render =====
+function loop(){
+  // Mundo só simula quando NÃO está editando
+  if(!editing){
+    world.step(1/60);
+  }
+
+  // Limpa usando unidade CSS (ctx já está escalado pelo DPR)
+  ctx.clearRect(0,0,canvas.clientWidth,canvas.clientHeight);
+  drawGrid();
+
+  // RAMPAS
+  for(const item of ramps){
+    const b = item.body;
+    const p = b.getPosition();
+    drawPlank(m2px(p.x), m2px(p.y), item.w, item.h, b.getAngle(), '#f1d9b8', false);
+  }
+
+  // GANGORRAS
+  for(const s of seesaws){
+    const p = s.plank.getPosition();
+    drawPlank(m2px(p.x), m2px(p.y), s.w, s.h, s.plank.getAngle(), '#a8d1f1', false);
+    drawPivot(m2px(s.pivot.getPosition().x), m2px(s.pivot.getPosition().y));
+  }
+
+  // Ghost
+  if(placing){
+    if(placing.type === 'ramp'){
+      const p = placing.body.getPosition();
+      drawPlank(m2px(p.x), m2px(p.y), placing.w, placing.h, placing.body.getAngle(), 'rgba(241,217,184,.7)', true);
+    } else if (placing.type === 'seesaw'){
+      const p = placing.plank.getPosition();
+      drawPlank(m2px(p.x), m2px(p.y), placing.w, placing.h, placing.plank.getAngle(), 'rgba(168,209,241,.7)', true);
+      drawPivot(m2px(placing.pivot.getPosition().x), m2px(placing.pivot.getPosition().y), true);
+    }
+  }
+
+  // Bola
+  {
+    const p = ball.getPosition();
+    drawBall(m2px(p.x), m2px(p.y), 20);
+  }
+
+  // Balde
+  drawBucketSprite();
+
+  requestAnimationFrame(loop);
 }
 
+// ===== Draw helpers =====
 function drawGrid(){
   const step=40;
   ctx.save();
   ctx.globalAlpha=.18;
   ctx.beginPath();
-  for(let x=0;x<=canvas.width;x+=step){ ctx.moveTo(x,0); ctx.lineTo(x,canvas.height); }
-  for(let y=0;y<=canvas.height;y+=step){ ctx.moveTo(0,y); ctx.lineTo(canvas.width,y); }
+  for(let x=0;x<=canvas.clientWidth;x+=step){ ctx.moveTo(x,0); ctx.lineTo(x,canvas.clientHeight); }
+  for(let y=0;y<=canvas.clientHeight;y+=step){ ctx.moveTo(0,y); ctx.lineTo(canvas.clientWidth,y); }
   ctx.strokeStyle='#a9cfcf'; ctx.lineWidth=1; ctx.stroke();
   ctx.restore();
 }
-function drawPlank(x,y,w,h,ang,fill,ghost=false,selected=false){
+function drawPlank(x,y,w,h,ang,fill,ghost=false){
   ctx.save(); ctx.translate(x,y); ctx.rotate(ang);
   ctx.fillStyle=fill; ctx.strokeStyle='#8a5a3b'; ctx.lineWidth=2;
   roundRect(ctx,-w/2,-h/2,w,h,6); ctx.fill(); ctx.stroke();
-  // hachuras
-  ctx.globalAlpha=.25; ctx.beginPath();
-  for(let i=-w/2+6;i<w/2-6;i+=10){ ctx.moveTo(i,-h/2+3); ctx.lineTo(i+8,h/2-3); }
-  ctx.strokeStyle='#8a5a3b'; ctx.lineWidth=1; ctx.stroke();
-  ctx.globalAlpha=1;
-
-  if(ghost){
+  if(!ghost){
+    ctx.globalAlpha=.25; ctx.beginPath();
+    for(let i=-w/2+6;i<w/2-6;i+=10){ ctx.moveTo(i,-h/2+3); ctx.lineTo(i+8,h/2-3); }
+    ctx.strokeStyle='#8a5a3b'; ctx.lineWidth=1; ctx.stroke();
+    ctx.globalAlpha=1;
+  } else {
     ctx.setLineDash([6,6]); ctx.strokeStyle='#20b2aa'; ctx.lineWidth=2;
     ctx.strokeRect(-w/2,-h/2,w,h); ctx.setLineDash([]);
   }
-  if(selected){
-    ctx.setLineDash([8,5]); ctx.strokeStyle='#f3852e'; ctx.lineWidth=3;
-    ctx.strokeRect(-w/2-3,-h/2-3,w+6,h+6); ctx.setLineDash([]);
-  }
+  ctx.restore();
+}
+function drawPivot(x,y,ghost=false){
+  ctx.save();
+  ctx.beginPath();
+  ctx.arc(x,y,5,0,Math.PI*2);
+  ctx.fillStyle = ghost ? 'rgba(32,178,170,.7)' : '#8a5a3b';
+  ctx.fill();
   ctx.restore();
 }
 function roundRect(ctx,x,y,w,h,r){
@@ -331,41 +381,6 @@ function drawBall(x,y,r){
 function drawBucketSprite(){
   const w = 300*BUCKET_SCALE, h = 300*BUCKET_SCALE;
   ctx.drawImage(imgBucket, BUCKET_ANCHOR.x, BUCKET_ANCHOR.y, w, h);
-}
-
-// Loop
-function loop(){
-  if(!editing){
-    world.step(1/60);
-  }
-  ctx.clearRect(0,0,canvas.width,canvas.height);
-  drawGrid();
-
-  // rampas
-  for(const item of ramps){
-    const b = item.body;
-    const p = b.getPosition();
-    const ang = b.getAngle();
-    drawPlank(m2px(p.x), m2px(p.y), item.w, item.h, ang, '#f1d9b8', false, item===selected);
-  }
-
-  // fantasma (só desenha se mouse estiver sobre o canvas)
-  if(placing && mouseOverCanvas){
-    const p = placing.body.getPosition();
-    const ang = placing.body.getAngle();
-    drawPlank(m2px(p.x), m2px(p.y), placing.w, placing.h, ang, 'rgba(241,217,184,.7)', true, false);
-  }
-
-  // bola
-  {
-    const p = ball.getPosition();
-    drawBall(m2px(p.x), m2px(p.y), 20);
-  }
-
-  // balde
-  drawBucketSprite();
-
-  requestAnimationFrame(loop);
 }
 
 // Boot
