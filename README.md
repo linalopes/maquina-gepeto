@@ -66,8 +66,6 @@ O projeto já possui uma interface funcional com:
 
 ## 🚀 Próximos Passos
 
-![Arquitetura do Projeto](SVG/MG.svg)
-
 ### **1. Tutorial da Interface**
 - Desenvolver guia interativo mostrando como usar a toolbox
 - Explicar sistema de interação e construção de máquinas
@@ -156,6 +154,7 @@ maquina-gepeto/
 │   ├── diary.svg       # Ícone do tutorial
 │   ├── lamp.svg        # Ícone dos autores
 │   ├── pen.svg         # Ícone do livro
+│   ├── MG.svg          # Diagrama de arquitetura
 │   ├── Reference.svg   # Referência de interface
 │   ├── square1.svg     # Quadrado variação 1
 │   ├── square2.svg     # Quadrado variação 2
@@ -166,6 +165,7 @@ maquina-gepeto/
 │   └── background.png  # Textura de fundo
 ├── index.html          # Interface principal
 ├── styles.css          # Estilos globais
+├── .gitignore          # Arquivos ignorados pelo Git
 └── README.md           # Este arquivo
 ```
 
