@@ -1,4 +1,4 @@
-# Infância do GPT 🎮
+# As Máquinas de Gepeto 🎮
 
 > **Interface web interativa** inspirada em The Incredible Machine com estética de colagem e giz
 
@@ -8,7 +8,7 @@
 
 ## 🎯 Sobre o Projeto
 
-**Infância do GPT** é uma interface web interativa que combina a estética artesanal de colagem e giz com a mecânica de construção de máquinas do clássico jogo *The Incredible Machine*. O projeto permite aos usuários montar e experimentar com máquinas interativas através de uma interface intuitiva e visualmente atrativa.
+**As Máquinas de Gepeto** é uma interface web interativa que combina a estética artesanal de colagem e giz com a mecânica de construção de máquinas do clássico jogo *The Incredible Machine*. O projeto permite aos usuários montar e experimentar com máquinas interativas através de uma interface intuitiva e visualmente atrativa.
 
 ### ✨ Características Visuais
 
@@ -17,6 +17,20 @@
 - **Interface Intuitiva**: Layout limpo e organizado em formato paisagem
 - **Responsividade**: Adaptação automática para diferentes tamanhos de tela
 - **Animações Suaves**: Transições e efeitos visuais cuidadosamente elaborados
+
+## Organização do Desenvolvimento
+
+- **Branchs ativas**:
+  - `main` → base do projeto
+  - `nathan` → desenvolvimento de features específicas
+  - `lina` → desenvolvimento paralelo com foco em interface e interatividade
+
+- **Arquitetura de componentes a ser implementada** (cada parte em seu próprio JavaScript):
+  - `menu.js` → gerenciamento dos ícones e modais
+  - `toolbox.js` → lista de elementos mecânicos
+  - `header.js` → título e barra principal
+  - `playground.js` → espaço de montagem das máquinas
+
 
 ## 🎮 Estado Atual
 
@@ -61,16 +75,19 @@ O projeto já possui uma interface funcional com:
 - Criar mecânica de diferentes tipos de rampa com sons únicos
 
 ### **3. Toolbox de Elementos Mecânicos**
-Definir e implementar elementos interativos:
-- **Rampa** - Superfícies inclinadas para movimento
-- **Gangorra** - Alavancas balanceadas
-- **Balança** - Sistema de pesos e contrapesos
-- **Elástico** - Elementos com propriedades elásticas
-- **Pinça** - Ferramentas de manipulação
-- **Alavanca** - Mecanismos de força
-- **Roda** - Elementos rotativos
-- **Tubo** - Condutos para passagem de objetos
-- **Pistão** - Mecanismos de pressão
+Implementar elementos interativos:
+
+- **Rampa** – Superfícies inclinadas que permitem o movimento de objetos
+- **Gangorra** – Alavanca horizontal com apoio central para equilíbrio
+- **Alavanca** – Mecanismos para aplicar e multiplicar força
+- **Elástico** – Elementos que armazenam e liberam energia
+- **Corda** – Conectores flexíveis para transmissão de movimento
+- **Polia** – Rodas com sulcos para redirecionar força com cordas
+- **Engrenagens** – Rodas dentadas que transmitem movimento rotacional
+- **Tubo** – Condutos para passagem ou canalização de objetos
+- **Cotovelos** – Conexões angulares que mudam a direção de tubos
+- **Balde** – Recipientes para acumular, transportar ou liberar objetos
+
 
 ### **4. Integração Planck.js**
 - Substituir simulações estáticas por física realista
