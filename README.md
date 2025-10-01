@@ -20,6 +20,8 @@
 
 ## Organização do Desenvolvimento
 
+![As Máquinas de Gepeto](SVG/MG.svg)
+
 - **Branchs ativas**:
   - `main` → base do projeto
   - `nathan` → desenvolvimento de features específicas
@@ -63,6 +65,8 @@ O projeto já possui uma interface funcional com:
 - **Animações**: Ícone de dispositivo girando para orientar o usuário
 
 ## 🚀 Próximos Passos
+
+![Arquitetura do Projeto](SVG/MG.svg)
 
 ### **1. Tutorial da Interface**
 - Desenvolver guia interativo mostrando como usar a toolbox
